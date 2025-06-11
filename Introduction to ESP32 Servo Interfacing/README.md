@@ -18,5 +18,21 @@ This project demonstrates how to interface a single servo motor with an ESP32 us
 
 ---
 
+## Example Serial Monitor Output
+
+===========================================
+Welcome to the Mechatronics Serial Demo!
+This program demonstrates Serial communication. You will see how Serial.print and Serial println work.
+
+Serial.print stays on the same line, while Serial.println moves to a new line.
+
+Mechatronics combines:
+
+Mechanics
+Electronics
+Computer Science
+Control Engineering
+Let's get started!
+
 **Note:**  
 This file covers only single servo interfacing. For controlling five servos simultaneously, please refer to the next file in this project.
