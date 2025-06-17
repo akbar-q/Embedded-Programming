@@ -16,7 +16,7 @@ void loop() {
   clawServo.write(angle);
 
   // Print the current angle to the Serial Monitor
-  Serial.print("Current angle: ");
+  Serial.print("Current Angle: ");
   Serial.println(angle);
 
   // Demonstrate if, else if, else logic with different conditions
@@ -26,6 +26,10 @@ void loop() {
   } else if (angle > 0 && angle < 90) {
     // This block runs if angle is greater than 0 but less than 90
     Serial.println("Servo is between 0 and 90 degrees.");
+
+
+
+    
   } else if (angle == 90) {
     // This block runs if angle is exactly 90
     Serial.println("Servo is exactly at 90 degrees.");
