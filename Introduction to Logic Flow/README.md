@@ -181,6 +181,28 @@ Servo is at the starting position (0 degrees).
 
 ---
 
+## About the ESP32Servo Library
+
+This project uses the [ESP32Servo](https://github.com/jkb-git/ESP32Servo) library to control servo motors with the ESP32. The standard Arduino Servo library does not work with the ESP32, so you must use this special library.
+
+### How to Install the ESP32Servo Library
+
+1. **Using the Arduino Library Manager:**
+   - Open the Arduino IDE.
+   - Go to **Tools > Manage Libraries...**
+   - In the Library Manager, search for `ESP32Servo`.
+   - Click **Install** on the ESP32Servo library by John Bennett.
+
+2. **Manual Installation:**
+   - Visit the [ESP32Servo GitHub page](https://github.com/jkb-git/ESP32Servo).
+   - Click the green **Code** button and select **Download ZIP**.
+   - In the Arduino IDE, go to **Sketch > Include Library > Add .ZIP Library...** and select the downloaded ZIP file.
+
+**Why do you need this library?**  
+The ESP32Servo library provides functions to easily attach a servo to a GPIO pin and control its angle, making it simple to use servos with the ESP32.
+
+---
+
 ## Code Explanation (Step-by-Step for Beginners)
 
 ```cpp
