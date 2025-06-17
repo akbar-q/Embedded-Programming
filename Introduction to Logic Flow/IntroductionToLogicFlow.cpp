@@ -29,7 +29,7 @@ void loop() {
 
 
 
-    
+
   } else if (angle == 90) {
     // This block runs if angle is exactly 90
     Serial.println("Servo is exactly at 90 degrees.");
@@ -39,7 +39,7 @@ void loop() {
   } else if (angle >= 180) {
     // This block runs if angle is 180 or more
     Serial.println("Servo is at or beyond the maximum (180 degrees). Resetting to 0.");
-    angle = -10; // Will become 0 after increment below
+    angle = -10; // Will become 0 after increment below, Wrong on Purpose
   } else {
     // This block runs if none of the above conditions are true
     Serial.println("Unexpected angle value!");
@@ -48,7 +48,9 @@ void loop() {
   delay(1000); // Wait 1 second before the next movement
 
   // Increment angle by 30 degrees each time through the loop
-  angle += 30; // Same as angle = angle + 30;
+     angle += 30; // Same as angle = angle + 30;
+  // angle  = angle + 30; // Alternative way to increment angle
+
 
   // Demonstrate variable increment with ++ (uncomment to use)
   // angle++; // Increases angle by 1
