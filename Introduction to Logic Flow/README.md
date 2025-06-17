@@ -26,6 +26,59 @@ This project demonstrates how to use **logic flow statements** (`if`, `else if`,
 
 ---
 
+...
+
+---
+
+## Why Are Logic Operators and Variable Increments Required?
+
+Logic operators and variable increments are essential tools in programming because they allow your code to make decisions and repeat actions based on changing conditions. In real-world applications—like controlling a servo motor—you often need to:
+
+- **Check conditions:** For example, "Is the angle less than 90?" or "Has the servo reached its maximum position?"
+- **Respond differently:** Take different actions depending on the situation, such as moving the servo to a new position or resetting it.
+- **Change values:** Increase or decrease a variable to track progress, count events, or step through a sequence.
+
+### When to Use `val = val + 30` vs. `val++`
+
+- **`val = val + 30;` or `val += 30;`**  
+  Use this when you want to increase the value by more than 1 (e.g., move the servo in steps of 30 degrees).
+
+- **`val++;`**  
+  Use this when you want to increase the value by exactly 1 (e.g., count how many times something happens, or move in single steps).
+
+**Example:**
+```cpp
+angle += 30; // Increases angle by 30 each time
+angle++;     // Increases angle by 1 each time
+```
+
+---
+
+## Common Operators Reference
+
+| Operator | Name                  | Example         | Description                                 |
+|----------|-----------------------|----------------|---------------------------------------------|
+| `==`     | Equal to              | `a == b`       | True if a is equal to b                     |
+| `!=`     | Not equal to          | `a != b`       | True if a is not equal to b                 |
+| `>`      | Greater than          | `a > b`        | True if a is greater than b                 |
+| `<`      | Less than             | `a < b`        | True if a is less than b                    |
+| `>=`     | Greater than or equal | `a >= b`       | True if a is greater than or equal to b     |
+| `<=`     | Less than or equal    | `a <= b`       | True if a is less than or equal to b        |
+| `&&`     | Logical AND           | `a && b`       | True if both a and b are true               |
+| `||`     | Logical OR            | `a || b`       | True if either a or b is true               |
+| `!`      | Logical NOT           | `!a`           | True if a is false                          |
+| `++`     | Increment by 1        | `a++`          | Increases a by 1                            |
+| `--`     | Decrement by 1        | `a--`          | Decreases a by 1                            |
+| `+=`     | Add and assign        | `a += 5`       | Increases a by 5                            |
+| `-=`     | Subtract and assign   | `a -= 5`       | Decreases a by 5                            |
+
+---
+
+**Tip:**  
+Try changing the increment value or adding your own conditions to see how the logic flow changes!
+
+---
+
 ## Example Serial Monitor Output
 
 ```
