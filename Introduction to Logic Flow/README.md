@@ -260,6 +260,49 @@ void loop() {
   }
 }
 ```
+---
+
+## Using `delay` and `value++` for Servo Speed Control
+
+By combining the `delay()` function and incremental changes to the servo angle (such as `angle++`), you can control how fast the servo arm moves from one position to another. This is a simple way to create smooth, gradual motion instead of jumping instantly to a new angle.
+
+### How It Works
+
+- **`angle++` or `angle += small_value;`**  
+  Increases the servo angle by a small amount each loop, moving the arm in small steps.
+- **`delay(time_in_ms);`**  
+  Pauses the program for a set amount of milliseconds after each step, controlling how quickly the next step happens.
+
+By adjusting the size of the increment and the delay, you can make the servo move faster or slower.
+
+### Example: Smooth Servo Sweep
+
+```cpp
+for (int angle = 0; angle <= 180; angle++) {
+  clawServo.write(angle);   // Move servo to the current angle
+  delay(15);                // Wait 15 milliseconds before next step
+}
+```
+- **Smaller delay (e.g., `delay(5);`)** = Faster movement
+- **Larger delay (e.g., `delay(50);`)** = Slower movement
+- **Larger increment (e.g., `angle += 5;`)** = Bigger jumps, less smooth
+
+### Why Use This Method?
+
+- **Smooth Movement:** Instead of jumping directly from 0° to 180°, the servo moves smoothly through all intermediate positions.
+- **Speed Control:** You can easily adjust the speed by changing the delay or the increment value.
+- **Animation Effects:** Useful for robotic arms, animatronics, or any project where you want lifelike motion.
+
+### Try It Yourself
+
+- Change the value of `delay()` to see how it affects speed.
+- Try `angle += 2;` or `angle += 5;` for faster, less smooth movement.
+- Combine with logic (e.g., only sweep if a button is pressed) for interactive control.
+
+---
+
+**Summary:**  
+The combination of a small increment (`angle++`) and a controlled delay (`delay(…)`) is a simple and effective way to control the speed and smoothness of servo movements in your projects.
 
 ---
 

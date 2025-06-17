@@ -48,16 +48,20 @@ void loop() {
   delay(100); // Wait 100 milliseconds before the next movement
 
   // Increment angle by 30 degrees each time through the loop
-  //  angle += 30; // Same as angle = angle + 30;
+  // angle += 30; // Same as angle = angle + 30;
   // angle  = angle + 30; // Alternative way to increment angle
 
 
   // Demonstrate variable increment with ++ (uncomment to use)
    angle++; // Increases angle by 1
 
-  /* Keep angle within 0-180 range
+  /*
+  
+  Keep angle within 0-180 range
   if (angle > 180) {
-    angle = 180; // Limit the angle to a maximum of 180 */
+    angle = 180; // Limit the angle to a maximum of 180 
+    }
+    */
 
   // Reset angle to 0 if it exceeds 180
   if (angle > 180) {
