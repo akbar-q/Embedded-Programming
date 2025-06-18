@@ -1,20 +1,24 @@
 #include <ESP32Servo.h>
-#include "Adafruit_VL53L0X.h"    
+#include "Adafruit_VL53L0X.h"    //  lines 1-2 include the necessary libraries to code the MG996r servos and VL53L0x time of flight sensor.
+
 Servo base;                                                                
 Servo lowerarm; 
 Servo midarm;                                                          
 Servo upperarm;                                                           
 Servo rotataryclaw;                                                       
-Servo claw;
-Adafruit_VL53L0X tofSensor = Adafruit_VL53L0X(); 
+Servo claw;         //lines 4-9 Define the servos in the program and name them, since this is a code for 6 servo arm so 6 servos were defined
+
+
+Adafruit_VL53L0X tofSensor = Adafruit_VL53L0X();  //This line adds the time of flight sensor to the program
+
 
 void displayServoPositions(int pos, const char* servoName) {
   Serial.print(servoName);
   Serial.print(": ");
   Serial.println(pos);
-}
+}     //This is a function created to display the position of each servos in the serial monitor while the code is running
 
-// Function to move a servo to a specific position at a controlled speed
+
 void moveServoWithSpeed(Servo &servo, int startPos, int targetPos, int speed, const char* servoName) {
   if (startPos < targetPos) {
     for (int pos = startPos; pos <= targetPos; pos++) {
@@ -29,7 +33,8 @@ void moveServoWithSpeed(Servo &servo, int startPos, int targetPos, int speed, co
       delay(speed);
     }
   }
-}
+} //This funcions controls how quickly the servo moves from its intial position to the defined position, the servos gets quicker as the value of the speed decreases,
+// and the servo gets slower as the value of int speed is increased
 
 void setup(){
   // Initialize serial communication
@@ -43,7 +48,6 @@ void setup(){
   Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
 
 
-
   // Attach servos to pins
   base.attach(33);
   lowerarm.attach(26);
@@ -51,7 +55,8 @@ void setup(){
   midarm.attach(32);
   rotataryclaw.attach(13);
   claw.attach(12);
-}
+} // This function runs once on initiating the code and it connects the digital pins of the ESP 32 to the servos, 
+// also an IF condition is used to Display the sensor failure in the serial monitor and to display the distance being measured by the tof sensor
 
 
 void loop() {
@@ -107,7 +112,7 @@ moveServoWithSpeed(upperarm, 85, 120, 10, "lowerarm");
 
 }
 } else {
-    Serial.println("Out of range");
+    Serial.println("Out of range"); //This condition here keeps the servos from running incase the object is not detected by the tof sensor
   } 
 
   delay(300); // Delay for sensor updates
