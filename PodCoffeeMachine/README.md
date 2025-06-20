@@ -1,6 +1,6 @@
 # Pod Coffee Machine Control System
 
-This project is a prototype control system for a pod-based coffee machine, developed for the Barista One90 client brief. The system is designed to safely automate the coffee dispensing process using a microcontroller, temperature sensor, LCD display, and user input buttons.
+This project is a prototype control system for a pod-based coffee machine, developed for the Barista One90 client brief. The system automates the coffee dispensing process using a microcontroller, temperature sensor, LCD display, and user input buttons.
 
 ---
 
@@ -10,23 +10,36 @@ The coffee machine supports two coffee sizes:
 - **Espresso** (short measure)
 - **Maxi** (standard measure)
 
-The system detects when a pod is inserted, allows the user to select the coffee size, heats the water, dispenses coffee for the correct time, and includes safety and pause features.
+The system detects pod insertion, allows the user to select the coffee size, heats the water, dispenses coffee for the correct time, and includes safety and pause features.
+
+![System Diagram](diagram.png)
 
 ---
 
 ## Features & Requirements
 
-This prototype system meets the following client requirements:
+- **Pod Detection:** Detects when a new single-use coffee pod is inserted.
+- **User Selection:** User can select espresso or maxi size.
+- **Water Heating:** Heats water to the required temperature.
+- **Temperature Indication:** Indicates when water is ready.
+- **Timed Dispensing:** Pumps water for 10s (espresso) or 20s (maxi).
+- **Process Complete Indication:** Notifies when dispensing is complete.
+- **Safety Measures:** Prevents harm and allows pausing on faults.
+- **Low Power Mode:** (To be implemented) Enters low power after 10 minutes inactivity.
+- **User Feedback:** LCD provides clear instructions and status.
 
-- **Pod Detection:** The machine detects when a new single-use coffee pod is inserted.
-- **User Selection:** The user can select either espresso or maxi size.
-- **Water Heating:** The water heater turns on and heats water to the required temperature.
-- **Temperature Indication:** The system indicates when the water has reached the correct temperature.
-- **Timed Dispensing:** A DC motor pumps water through the pod for 10 seconds (espresso) or 20 seconds (maxi).
-- **Process Complete Indication:** The system indicates when coffee dispensing is complete.
-- **Safety Measures:** Extensive safety measures are in place to prevent user harm, including the ability to pause the system if a fault occurs.
-- **Low Power Mode:** The machine should enter low power mode after 10 minutes of inactivity (to be implemented).
-- **Enhanced User Experience:** The system provides clear LCD feedback and handles unexpected events (e.g., missing pod, temperature not reached).
+---
+
+## Logic Flow
+
+1. **Startup:** Display welcome message.
+2. **Pod Detection:** Wait for pod insertion via IR sensor.
+3. **Water Heating:** Activate heater and monitor temperature.
+4. **Ready State:** When temperature is reached, allow coffee selection.
+5. **Coffee Selection:** User cycles through options with button.
+6. **Dispensing:** User holds button to start dispensing; DC motor runs for selected time.
+7. **Completion:** Notify user, prompt to remove cup, and purge capsule.
+8. **Repeat or Enter Low Power:** Wait for next pod or enter low power mode after inactivity.
 
 ---
 
@@ -63,7 +76,7 @@ PodCoffeeMachine/
 │
 ├── PodCoffeeMachine.ino
 ├── README.md
-└── (add images or schematics here if needed)
+└── Diagram.png
 ```
 
 ---
