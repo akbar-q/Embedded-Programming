@@ -54,7 +54,7 @@ void handleRoot() {
   html += "</style></head><body>";
   
   html += "<div class=\"header\">";
-  html += "<h1>EEE Manchester 2025</h1>";
+  html += "<h1>Akbar Q 2025</h1>";
   html += "</div>";
   
   html += "<div class=\"power-display\">" + String(power, 2) + " W</div>";

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .header {
+      background-color: #d40000;
+      color: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .power-display {
+      font-size: 72px;
+      font-weight: bold;
+      color: #d40000;
+      margin: 20px 0;
+    }
+    .data-container {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+    .data-box {
+      background-color: white;
+      border-radius: 5px;
+      padding: 15px;
+      width: 45%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .energy-box {
+      background-color: white;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 20px auto;
+      width: 80%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+    }
+    p.value {
+      font-size: 24px;
+      color: #d40000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Akbar Q 2025</h1>
+  </div>
+
+  <div class="power-display">512.75 W</div>
+
+  <div class="data-container">
+    <div class="data-box">
+      <h2>Voltage</h2>
+      <p class="value">12.456 V</p>
+    </div>
+
+    <div class="data-box">
+      <h2>Current</h2>
+      <p class="value">41.177 A</p>
+    </div>
+  </div>
+
+  <div class="energy-box">
+    <h2>Today's Energy Consumption</h2>
+    <p class="value">3445.23 Wh</p>
+  </div>
+
+</body>
+</html>
