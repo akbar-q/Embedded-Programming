@@ -4,6 +4,17 @@ This project demonstrates the control of a 6-DOF robotic arm using an ESP32 and 
 
 ---
 
+## Libraries Required
+
+To run this project, you need to install the following libraries in your Arduino IDE:
+
+- [ESP32Servo](https://github.com/jkb-git/ESP32Servo): For controlling servo motors with the ESP32.
+- [Adafruit_VL53L0X](https://github.com/adafruit/Adafruit_VL53L0X): For interfacing with the VL53L0X time-of-flight distance sensor.
+
+You can install these libraries via the Arduino Library Manager or by downloading them from the provided links.
+
+---
+
 ## Project Images
 
 Below are images of the assembled 6-DOF ESP Arm:
