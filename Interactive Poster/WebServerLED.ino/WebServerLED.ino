@@ -4,8 +4,8 @@
 
 //LATEST VERSION OF CODE WITH LCD ON GPT
 
-const char* ssid = "Student@WINC";
-const char* password = "winc_123";
+const char* ssid = "WiFi-Name"; // Replace with your WiFi network name
+const char* password = "WiFi-Password"; // Replace with your WiFi network password
 
 #define WindPot 1
 #define PhotoResistor 2
