@@ -155,6 +155,41 @@ Refrigeration Room Monitor/
 
 
 ---
+---
+
+## Project Gantt Chart
+
+The following Gantt chart outlines the planned schedule and activities for the Refrigeration Room Door Monitor project, including task breakdowns, durations, and dependencies across two days of development:
+
+![Project Gantt Chart](gantt.png)
+
+*Figure: Project Gantt chart showing activities, sessions, and time allocations.*
+
+---
+
+### Gantt Chart
+
+| Activity                | Day 1: Session 1 | Day 1: Session 2 | Day 1: Session 3 | Day 1: Session 4 | Day 2: Session 5 | Day 2: Session 6 |
+|-------------------------|:----------------:|:----------------:|:----------------:|:----------------:|:----------------:|:----------------:|
+| Task plan               |   ● ●            |                  |                  |                  |                  |                  |
+| Log Book                |   ● ● ●          |                  |                  |                  |                  |                  |
+| Technical Specification |                  |   ● ● ●          |                  |                  |                  |                  |
+| Test plan               |                  |        ●         |                  |                  |                  |                  |
+| Justification           |                  |                  |   ● ●            |                  |                  |                  |
+| Description             |                  |                  |     ● ● ●        |                  |                  |                  |
+| System Diagram          |                  |                  |         ● ●      |                  |                  |                  |
+| Flow Chart              |                  |                  |           ● ●    |                  |                  |                  |
+| Assembly                |                  |                  |                  |   ● ● ● ●        |                  |                  |
+| Coding                  |                  |                  |                  |     ● ● ● ●      |                  |                  |
+| Comments                |                  |                  |                  |         ● ●      |                  |                  |
+| Testing                 |                  |                  |                  |                  |   ● ● ● ●        |                  |
+| Evaluate                |                  |                  |                  |                  |         ● ●      |                  |
+| Planning                |                  |                  |                  |                  |                  |   ●              |
+| Recording               |                  |                  |                  |                  |                  |     ●            |
+
+*● = 30 min block (approximate visual representation)*
+
+---
 
 ## Hardware Testing
 
