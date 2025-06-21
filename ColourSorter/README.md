@@ -90,8 +90,7 @@ Install `LiquidCrystal_I2C` via the Arduino Library Manager.
 ColourSorter/
 ├── ColourSorter.ino
 ├── Diagram.bmp
-├── README.md
-└── Untitled-1 (Code Citations)
+└── README.md
 ```
 
 ---
@@ -157,17 +156,19 @@ Refer to this diagram when assembling your hardware for the Colour Sorter projec
 
 ---
 
-## Code Citations
+## Credits & Code Citations
 
-Some code for musical notes, tone definitions, and melodies (such as the Pac-Man melody and note frequency tables) was adapted or referenced from the following open-source projects and examples:
+Some musical note definitions, tone tables, and melody sequences (such as the Pac-Man melody and note frequency tables) used in this project are adapted from or inspired by the work of other Arduino developers. These resources were used to provide accurate musical playback and to enhance the user experience with familiar melodies and sound effects.
 
-- [wobot/pitches.h](https://github.com/reenberg/wobot/tree/ce7f112096ba1abd43b8d29da7e8944c2a004125/arduino-dist/examples/2.Digital/toneMelody/pitches.h) (License: unknown)
-- [jknight1725/arduino/pitches.h](https://github.com/jknight1725/arduino/tree/cfe1112779f3b34c8559a73bacee721098583fb9/pitches.h) (License: unknown)
-- [lcortesg/sumo-rc/Songs.ino](https://github.com/lcortesg/sumo-rc/tree/f84231c364d421a4da7ad0df003c2e4cb5ef87a3/Songs.ino) (License: GPL_3_0)
-- [cleggacus/not-pacman-on-arduino/game.ino](https://github.com/cleggacus/not-pacman-on-arduino/tree/0ca71d22488527058e84302fccc560d118de603d/game.ino) (License: unknown)
-- [claudia-maria-dudau/Pac-Man/buzzer.h](https://github.com/claudia-maria-dudau/Pac-Man/tree/2b50ec19903866e7af606b9fe8e11b396d931704/main/buzzer.h) (License: unknown)
+Special thanks to the following open-source Arduino projects and contributors for their work on tone generation and melody code, which served as references and inspiration:
 
-See the file `Untitled-1` in this folder for code citation details and code snippets.
+- [wobot/pitches.h](https://github.com/reenberg/wobot/tree/ce7f112096ba1abd43b8d29da7e8944c2a004125/arduino-dist/examples/2.Digital/toneMelody/pitches.h)
+- [jknight1725/arduino/pitches.h](https://github.com/jknight1725/arduino/tree/cfe1112779f3b34c8559a73bacee721098583fb9/pitches.h)
+- [lcortesg/sumo-rc/Songs.ino](https://github.com/lcortesg/sumo-rc/tree/f84231c364d421a4da7ad0df003c2e4cb5ef87a3/Songs.ino)
+- [cleggacus/not-pacman-on-arduino/game.ino](https://github.com/cleggacus/not-pacman-on-arduino/tree/0ca71d22488527058e84302fccc560d118de603d/game.ino)
+- [claudia-maria-dudau/Pac-Man/buzzer.h](https://github.com/claudia-maria-dudau/Pac-Man/tree/2b50ec19903866e7af606b9fe8e11b396d931704/main/buzzer.h)
+
+These references were used solely for educational and non-commercial purposes to provide musical feedback and enhance the interactivity of the Colour Sorter project.
 
 ---
 
