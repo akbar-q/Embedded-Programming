@@ -89,7 +89,9 @@ Install `LiquidCrystal_I2C` via the Arduino Library Manager.
 ```
 ColourSorter/
 ├── ColourSorter.ino
-└── README.md
+├── Diagram.bmp
+├── README.md
+└── Untitled-1 (Code Citations)
 ```
 
 ---
@@ -137,12 +139,6 @@ Max Hue = Red
 
 ---
 
-## License
-
-This project is for educational and demonstration purposes only.
-
----
-
 ## System Diagram
 
 A rough system diagram is provided to help you visualize the hardware connections and sorting layout:
@@ -158,3 +154,23 @@ A rough system diagram is provided to help you visualize the hardware connection
 - **Motor:** Drives the conveyor belt.
 
 Refer to this diagram when assembling your hardware for the Colour Sorter project.
+
+---
+
+## Code Citations
+
+Some code for musical notes, tone definitions, and melodies (such as the Pac-Man melody and note frequency tables) was adapted or referenced from the following open-source projects and examples:
+
+- [wobot/pitches.h](https://github.com/reenberg/wobot/tree/ce7f112096ba1abd43b8d29da7e8944c2a004125/arduino-dist/examples/2.Digital/toneMelody/pitches.h) (License: unknown)
+- [jknight1725/arduino/pitches.h](https://github.com/jknight1725/arduino/tree/cfe1112779f3b34c8559a73bacee721098583fb9/pitches.h) (License: unknown)
+- [lcortesg/sumo-rc/Songs.ino](https://github.com/lcortesg/sumo-rc/tree/f84231c364d421a4da7ad0df003c2e4cb5ef87a3/Songs.ino) (License: GPL_3_0)
+- [cleggacus/not-pacman-on-arduino/game.ino](https://github.com/cleggacus/not-pacman-on-arduino/tree/0ca71d22488527058e84302fccc560d118de603d/game.ino) (License: unknown)
+- [claudia-maria-dudau/Pac-Man/buzzer.h](https://github.com/claudia-maria-dudau/Pac-Man/tree/2b50ec19903866e7af606b9fe8e11b396d931704/main/buzzer.h) (License: unknown)
+
+See the file `Untitled-1` in this folder for code citation details and code snippets.
+
+---
+
+## License
+
+This project is for educational and demonstration purposes only.
