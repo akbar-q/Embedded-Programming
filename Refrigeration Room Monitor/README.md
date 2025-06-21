@@ -153,7 +153,32 @@ Refrigeration Room Monitor/
 4. **Test** using the test button and run through the test plan above.
 5. **Monitor** door status and alerts via LED, buzzer, and LCD.
 
+
 ---
+
+## Hardware Testing
+
+Below are images showing the system in various test states:
+
+### Door Closed (Normal Operation)
+![Door Closed](Closed.png)
+
+---
+
+### Door Open (Timer Running)
+![Door Open](Open.png)
+
+---
+
+### System Disabled (Maintenance Mode)
+![System Disabled](Disabled.png)
+
+---
+
+### Output Test (All Outputs Activated)
+![Output Test](Test.png)
+---
+
 
 ## Customization
 
