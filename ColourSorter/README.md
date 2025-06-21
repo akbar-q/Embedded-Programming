@@ -140,3 +140,21 @@ Max Hue = Red
 ## License
 
 This project is for educational and demonstration purposes only.
+
+---
+
+## System Diagram
+
+A rough system diagram is provided to help you visualize the hardware connections and sorting layout:
+
+![Colour Sorter System Diagram](Diagram.bmp)
+
+- **Red, Blue, Green Bins:** Servo directs sorted items to the correct bin.
+- **LCD Display:** Shows status and feedback.
+- **Ultrasonic Sensor:** Detects approaching objects.
+- **Proximity Sensor:** Confirms object presence for sorting.
+- **Colour Sensor:** Identifies object colour.
+- **Buzzer:** Plays tones and melodies for feedback.
+- **Motor:** Drives the conveyor belt.
+
+Refer to this diagram when assembling your hardware for the Colour Sorter project.
