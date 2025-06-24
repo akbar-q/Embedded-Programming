@@ -4,27 +4,6 @@ This project demonstrates the control of a 6-DOF robotic arm using an ESP32 and 
 
 ---
 
-## Getting Started
-
-### 1. Install the Arduino IDE
-
-Download and install the Arduino IDE from the official website:  
-[https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/)
-
-### 2. Install the ESP32 Board Support
-
-To program the ESP32, you need to add the ESP32 board definitions to the Arduino IDE:
-
-1. Open the Arduino IDE.
-2. Go to **File > Preferences**.
-3. In the "Additional Boards Manager URLs" field, add:  
-   `https://espressif.github.io/arduino-esp32/package_esp32_index.json`
-4. Go to **Tools > Board > Boards Manager**.
-5. Search for "ESP32" and click **Install** on the "esp32 by Espressif Systems" entry.
-
-### 3. Install Required Libraries
-
-
 ## Libraries Required
 
 To run this project, you need to install the following libraries in your Arduino IDE:
@@ -32,13 +11,7 @@ To run this project, you need to install the following libraries in your Arduino
 - [ESP32Servo](https://github.com/jkb-git/ESP32Servo): For controlling servo motors with the ESP32.
 - [Adafruit_VL53L0X](https://github.com/adafruit/Adafruit_VL53L0X): For interfacing with the VL53L0X time-of-flight distance sensor.
 
-To install a library:
-
-1. Go to **Sketch > Include Library > Manage Libraries...**
-2. In the Library Manager, search for the library name (e.g., "ESP32Servo").
-3. Click **Install**.
-
-Repeat for each required library.
+You can install these libraries via the Arduino Library Manager or by downloading them from the provided links.
 
 ---
 
@@ -244,6 +217,65 @@ The `loop()` function runs continuously after `setup()`.
 
 **Purpose:**  
 Implements the main logic for object detection and robotic arm control.
+
+---
+
+### Detailed Explanation: Object Detection and Measurement in `loop()`
+
+The following code block is responsible for reading distance measurements from the VL53L0X time-of-flight sensor and determining if an object is detected within a usable range:
+
+```cpp
+void loop() {
+  // Object detection by tof
+  VL53L0X_RangingMeasurementData_t measure;
+    
+  Serial.print("Reading a measurement... ");
+  tofSensor.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+
+  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+    Serial.print("Distance (mm): "); 
+    Serial.println(measure.RangeMilliMeter);
+    // ...rest of code...
+  } else {
+    Serial.println("Out of range");
+  }
+  delay(300); // Delay for sensor updates
+}
+```
+
+#### Step-by-step Explanation
+
+- **VL53L0X_RangingMeasurementData_t measure;**  
+  This creates a variable (`measure`) to store the measurement data from the sensor. The struct will hold information such as the measured distance and the status of the measurement.
+
+- **Serial.print("Reading a measurement... ");**  
+  Prints a message to the Serial Monitor to indicate that a new measurement is being taken.
+
+- **tofSensor.rangingTest(&measure, false);**  
+  This function triggers the VL53L0X sensor to perform a distance measurement.  
+  - The first argument (`&measure`) is a pointer to the struct where the result will be stored.
+  - The second argument (`false`) disables debug output. If set to `true`, the function would print detailed debug information to the Serial Monitor.
+
+- **if (measure.RangeStatus != 4)**  
+  The sensor provides a status code for each measurement.  
+  - `RangeStatus == 4` means a "phase failure," which indicates the measurement is invalid or unreliable.
+  - By checking `measure.RangeStatus != 4`, the code ensures only valid measurements are processed.
+
+- **Serial.print("Distance (mm): "); Serial.println(measure.RangeMilliMeter);**  
+  If the measurement is valid, the code prints the measured distance in millimeters to the Serial Monitor.
+
+- **else { Serial.println("Out of range"); }**  
+  If the measurement is invalid (e.g., no object detected or sensor error), it prints "Out of range" to the Serial Monitor.
+
+- **delay(300);**  
+  Waits 300 milliseconds before taking the next measurement. This prevents flooding the Serial Monitor and gives the sensor time to stabilize.
+
+#### Why is it written this way?
+
+- The code structure ensures that only valid sensor readings are used to trigger the robotic arm's actions.
+- By checking the `RangeStatus`, the program avoids acting on faulty or noisy data, which could cause erratic arm movement.
+- The use of `rangingTest` with a pointer allows the function to fill in all relevant measurement data in one call.
+- The serial prints provide real-time feedback for debugging and monitoring.
 
 ---
 
