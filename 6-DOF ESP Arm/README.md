@@ -47,6 +47,31 @@ Refer to the pinout diagram below for correct wiring:
 
 ---
 
+## VL53L0X Sensor Pinout & Wiring
+
+The VL53L0X is a time-of-flight distance sensor that communicates with the ESP32 via I2C. It has the following pins:
+
+- **VIN:** Power supply input (connect to 3.3V or 5V from ESP32)
+- **GND:** Ground (connect to ESP32 GND)
+- **SCL:** I2C clock (connect to ESP32 I2C SCL pin, e.g., GPIO 22)
+- **SDA:** I2C data (connect to ESP32 I2C SDA pin, e.g., GPIO 21)
+- **XSHUT:** (optional) Shutdown pin, can be left unconnected or used to reset the sensor
+- **GPIO1/INT:** (optional) Interrupt output, not required for basic operation
+
+Refer to the pinout diagram below for correct wiring:
+
+![VL53L0X Pinout](images/VL53L0X.jpg)
+*VL53L0X Time-of-Flight Sensor Pinout and Wiring*
+
+**Why these pins are needed:**
+- **VIN & GND:** Power the sensor.
+- **SCL & SDA:** Enable communication between the ESP32 and the sensor using the I2C protocol.
+- **XSHUT & GPIO1:** Optional for advanced features like multiple sensor management or interrupts.
+
+> **Note:** Make sure the I2C pins on the ESP32 match those defined in your code. Typical defaults are GPIO 21 (SDA) and GPIO 22 (SCL).
+
+---
+
 ## Features
 
 - **6 Degrees of Freedom:** Full control of base, lower arm, mid arm, upper arm, rotary claw, and gripper.
