@@ -72,6 +72,24 @@ Refer to the pinout diagram below for correct wiring:
 
 ---
 
+## ESP32 Pinout & Compatibility
+
+This project uses the 38-pin ESP32 development board, as shown below:
+
+![ESP32 38-Pin Pinout](images/ESP32.jpg)
+*ESP32 38-pin Development Board Pinout*
+
+### Pinout Notes
+
+- The 38-pin ESP32 provides plenty of GPIOs for connecting servos and sensors.
+- Some pins used in this project may be marked as "input only" on lower pin count ESP32 variants (such as the 34-pin or 30-pin models).
+- If you use a 34-pin or 30-pin ESP32, check the pinout diagram for your board and ensure you assign PWM-capable (output) pins to the servos in your code.
+- With minor code modifications to select available output-capable pins, this project will work on 34-pin and 30-pin ESP32 boards as well.
+
+> **Tip:** Always consult your specific ESP32 board's pinout to avoid using input-only pins for servo control.
+
+---
+
 ## Features
 
 - **6 Degrees of Freedom:** Full control of base, lower arm, mid arm, upper arm, rotary claw, and gripper.
@@ -121,8 +139,13 @@ Refer to the pinout diagram below for correct wiring:
 └── images/
     ├── arm_front.jpg
     ├── arm_side.jpg
-    └── arm_gripper.jpg
+    ├── arm_gripper.jpg
+    ├── servo-pinout.png
+    ├── VL53L0X.jpg
+    └── ESP32.jpg
 ```
+
+---
 
 ## Usage
 
@@ -133,21 +156,67 @@ Refer to the pinout diagram below for correct wiring:
 
 ---
 
-## ESP32 Pinout & Compatibility
+## Function Explanations
 
-This project uses the 38-pin ESP32 development board, as shown below:
+Below are detailed explanations of the main functions defined in the code:
 
-![ESP32 38-Pin Pinout](images/ESP32.jpg)
-*ESP32 38-pin Development Board Pinout*
+### `displayServoPositions(int pos, const char* servoName)`
 
-### Pinout Notes
+This function prints the current position of a servo to the Serial Monitor.  
+**Parameters:**
+- `pos`: The current angle/position of the servo.
+- `servoName`: The name of the servo (for identification in the output).
 
-- The 38-pin ESP32 provides plenty of GPIOs for connecting servos and sensors.
-- Some pins used in this project may be marked as "input only" on lower pin count ESP32 variants (such as the 34-pin or 30-pin models).
-- If you use a 34-pin or 30-pin ESP32, check the pinout diagram for your board and ensure you assign PWM-capable (output) pins to the servos in your code.
-- With minor code modifications to select available output-capable pins, this project will work on 34-pin and 30-pin ESP32 boards as well.
+**Purpose:**  
+Helps with debugging and monitoring by showing real-time servo positions as the arm moves.
 
-> **Tip:** Always consult your specific ESP32 board's pinout to avoid using input-only pins for servo control.
+---
+
+### `moveServoWithSpeed(Servo &servo, int startPos, int targetPos, int speed, const char* servoName)`
+
+This function moves a servo smoothly from a starting position to a target position at a controlled speed.  
+**Parameters:**
+- `servo`: Reference to the Servo object to move.
+- `startPos`: The initial position (angle) of the servo.
+- `targetPos`: The desired final position (angle).
+- `speed`: Delay in milliseconds between each step (lower value = faster movement).
+- `servoName`: The name of the servo (for display purposes).
+
+**How it works:**  
+- If the target position is greater than the start, the servo moves forward in increments.
+- If the target is less, it moves backward.
+- At each step, the servo position is updated and printed to the Serial Monitor.
+- The `delay(speed)` controls how fast the servo moves.
+
+**Purpose:**  
+Allows for smooth, gradual movement of servos, which is important for precise and gentle arm operation.
+
+---
+
+### `setup()`
+
+The `setup()` function runs once when the ESP32 starts.  
+**What it does:**
+- Initializes serial communication for debugging.
+- Initializes the VL53L0X sensor and checks if it is connected.
+- Attaches each Servo object to its corresponding ESP32 GPIO pin.
+
+**Purpose:**  
+Prepares all hardware and communication for the main program loop.
+
+---
+
+### `loop()`
+
+The `loop()` function runs continuously after `setup()`.  
+**What it does:**
+- Reads distance measurements from the VL53L0X sensor.
+- If an object is detected within 150mm, executes a sequence of servo movements to pick and place the object.
+- If no object is detected, prints "Out of range" and does not move the servos.
+- Waits 300ms between sensor updates.
+
+**Purpose:**  
+Implements the main logic for object detection and robotic arm control.
 
 ---
 
