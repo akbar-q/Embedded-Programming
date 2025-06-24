@@ -247,6 +247,65 @@ Implements the main logic for object detection and robotic arm control.
 
 ---
 
+### Detailed Explanation: Object Detection and Measurement in `loop()`
+
+The following code block is responsible for reading distance measurements from the VL53L0X time-of-flight sensor and determining if an object is detected within a usable range:
+
+```cpp
+void loop() {
+  // Object detection by tof
+  VL53L0X_RangingMeasurementData_t measure;
+    
+  Serial.print("Reading a measurement... ");
+  tofSensor.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+
+  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+    Serial.print("Distance (mm): "); 
+    Serial.println(measure.RangeMilliMeter);
+    // ...rest of code...
+  } else {
+    Serial.println("Out of range");
+  }
+  delay(300); // Delay for sensor updates
+}
+```
+
+#### Step-by-step Explanation
+
+- **VL53L0X_RangingMeasurementData_t measure;**  
+  This creates a variable (`measure`) to store the measurement data from the sensor. The struct will hold information such as the measured distance and the status of the measurement.
+
+- **Serial.print("Reading a measurement... ");**  
+  Prints a message to the Serial Monitor to indicate that a new measurement is being taken.
+
+- **tofSensor.rangingTest(&measure, false);**  
+  This function triggers the VL53L0X sensor to perform a distance measurement.  
+  - The first argument (`&measure`) is a pointer to the struct where the result will be stored.
+  - The second argument (`false`) disables debug output. If set to `true`, the function would print detailed debug information to the Serial Monitor.
+
+- **if (measure.RangeStatus != 4)**  
+  The sensor provides a status code for each measurement.  
+  - `RangeStatus == 4` means a "phase failure," which indicates the measurement is invalid or unreliable.
+  - By checking `measure.RangeStatus != 4`, the code ensures only valid measurements are processed.
+
+- **Serial.print("Distance (mm): "); Serial.println(measure.RangeMilliMeter);**  
+  If the measurement is valid, the code prints the measured distance in millimeters to the Serial Monitor.
+
+- **else { Serial.println("Out of range"); }**  
+  If the measurement is invalid (e.g., no object detected or sensor error), it prints "Out of range" to the Serial Monitor.
+
+- **delay(300);**  
+  Waits 300 milliseconds before taking the next measurement. This prevents flooding the Serial Monitor and gives the sensor time to stabilize.
+
+#### Why is it written this way?
+
+- The code structure ensures that only valid sensor readings are used to trigger the robotic arm's actions.
+- By checking the `RangeStatus`, the program avoids acting on faulty or noisy data, which could cause erratic arm movement.
+- The use of `rangingTest` with a pointer allows the function to fill in all relevant measurement data in one call.
+- The serial prints provide real-time feedback for debugging and monitoring.
+
+---
+
 ## Important Code Constructs
 
 ### `Serial.println(F("..."))`
