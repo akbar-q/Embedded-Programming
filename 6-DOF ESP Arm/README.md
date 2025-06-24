@@ -158,7 +158,7 @@ This project uses the 38-pin ESP32 development board, as shown below:
 
 ## Function Explanations
 
-Below are detailed explanations of the main functions defined in the code:
+Below are detailed explanations of the main functions and some important code constructs defined in the code:
 
 ### `displayServoPositions(int pos, const char* servoName)`
 
@@ -217,6 +217,55 @@ The `loop()` function runs continuously after `setup()`.
 
 **Purpose:**  
 Implements the main logic for object detection and robotic arm control.
+
+---
+
+## Important Code Constructs
+
+### `Serial.println(F("..."))`
+
+- The `F()` macro tells the Arduino to store the string in flash memory (program memory) instead of RAM.
+- This is useful on microcontrollers with limited RAM, as it saves memory for variables and data.
+- Example:  
+  ```cpp
+  Serial.println(F("Failed to boot VL53L0X"));
+  ```
+  This prints the message from flash memory, not RAM.
+
+---
+
+### `\n` in Strings
+
+- `\n` is the newline character. It moves the cursor to the next line in the Serial Monitor output.
+- Used to format output for better readability.
+- Example:  
+  ```cpp
+  Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
+  ```
+  This prints the message followed by two new lines.
+
+---
+
+### `while (1);`
+
+- This creates an infinite loop, effectively halting the program.
+- Used here to stop further execution if the VL53L0X sensor fails to initialize.
+- Example:  
+  ```cpp
+  if (!tofSensor.begin()) {
+    Serial.println(F("Failed to boot VL53L0X"));
+    while (1);
+  }
+  ```
+  If the sensor does not start, the code prints an error and then stops forever.
+
+---
+
+### `if (!tofSensor.begin())`
+
+- The `!` operator means "not". `tofSensor.begin()` returns `true` (non-zero) if the sensor initializes successfully, and `false` (zero) if it fails.
+- `if (!tofSensor.begin())` checks if initialization failed.
+- If it fails, the error message is printed and the program halts with `while (1);`.
 
 ---
 
