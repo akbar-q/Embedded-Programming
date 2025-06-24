@@ -30,6 +30,23 @@ Below are images of the assembled 6-DOF ESP Arm:
 
 ---
 
+## Servo Motor Pinout & Wiring
+
+The MG996R servo motors have three wires for connection:
+
+- **Brown:** GND (connect to ESP32 GND and external power supply GND)
+- **Red:** VCC (connect to 5V external power supply)
+- **Orange:** Signal (connect to ESP32 PWM-capable GPIO pins)
+
+Refer to the pinout diagram below for correct wiring:
+
+![Servo Motor Pinout](images/servo-pinout.png)
+*MG996R Servo Motor Pinout and Wiring*
+
+> **Note:** Always use an external 5V power supply for the servos. Connect all grounds (ESP32, servo power, and sensor) together to ensure proper operation.
+
+---
+
 ## Features
 
 - **6 Degrees of Freedom:** Full control of base, lower arm, mid arm, upper arm, rotary claw, and gripper.
