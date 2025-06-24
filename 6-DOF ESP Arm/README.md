@@ -133,6 +133,24 @@ Refer to the pinout diagram below for correct wiring:
 
 ---
 
+## ESP32 Pinout & Compatibility
+
+This project uses the 38-pin ESP32 development board, as shown below:
+
+![ESP32 38-Pin Pinout](images/ESP32.jpg)
+*ESP32 38-pin Development Board Pinout*
+
+### Pinout Notes
+
+- The 38-pin ESP32 provides plenty of GPIOs for connecting servos and sensors.
+- Some pins used in this project may be marked as "input only" on lower pin count ESP32 variants (such as the 34-pin or 30-pin models).
+- If you use a 34-pin or 30-pin ESP32, check the pinout diagram for your board and ensure you assign PWM-capable (output) pins to the servos in your code.
+- With minor code modifications to select available output-capable pins, this project will work on 34-pin and 30-pin ESP32 boards as well.
+
+> **Tip:** Always consult your specific ESP32 board's pinout to avoid using input-only pins for servo control.
+
+---
+
 ## License
 
 This project is for educational and demonstration purposes.
