@@ -1,0 +1,104 @@
+#include <ESP32Servo.h>
+
+// Define servo objects for each joint of the robotic arm
+Servo base;
+Servo lowerarm;
+Servo upperarm;
+Servo midarm;
+Servo rotary;
+Servo gripper;
+
+/**
+ * Moves a servo smoothly from startPos to targetPos at a given speed.
+ * @param servo      Reference to the Servo object.
+ * @param startPos   Starting angle (degrees).
+ * @param targetPos  Target angle (degrees).
+ * @param speed      Delay between steps (ms). Lower is faster.
+ * @param servoName  Name of the servo (for debugging, not used here).
+ */
+void moveServowithSpeed(Servo &servo, int startPos, int targetPos, int speed, const char* servoName) {
+    if (startPos < targetPos) {
+        for (int pos = startPos; pos <= targetPos; pos++) {
+            servo.write(pos);
+            delay(speed);
+        }
+    } else {
+        for (int pos = startPos; pos >= targetPos; pos--) {
+            servo.write(pos);
+            delay(speed);
+        }
+    }
+}
+
+void setup() {
+    // Initialize serial communication for debugging
+    Serial.begin(115200);
+
+    // Attach each servo to its corresponding ESP32 GPIO pin
+    base.attach(33);
+    lowerarm.attach(26);
+    upperarm.attach(18);
+    midarm.attach(32);
+    rotary.attach(13);
+    gripper.attach(12);
+}
+
+void loop() {
+    // The following block runs once per loop iteration.
+    // The 'if (1)' is always true, so the sequence repeats forever.
+    if (1) {
+        // Step 1: Move all axes to initial position
+        moveServowithSpeed(base,      90,  90, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150, 150, 15, "midarm");
+        moveServowithSpeed(upperarm, 120, 120, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120,   0, 15, "gripper");
+        delay(2000); // Wait 2 seconds
+
+        // Step 2: Move to pick position
+        moveServowithSpeed(base,      90, 180, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150, 150, 15, "midarm");
+        moveServowithSpeed(upperarm, 120, 120, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120,   0, 15, "gripper");
+        delay(2000);
+
+        // Step 3: Pick object (lower arm, close gripper)
+        moveServowithSpeed(base,      90, 180, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150,  70, 15, "midarm");
+        moveServowithSpeed(upperarm, 120,  85, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120, 180, 15, "gripper"); // Close gripper
+        delay(2000);
+
+        // Step 4: Return to initial position with object
+        moveServowithSpeed(base,      90,  90, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150, 150, 15, "midarm");
+        moveServowithSpeed(upperarm, 120, 120, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120, 180, 15, "gripper");
+        delay(2000);
+
+        // Step 5: Drop object (lower arm, open gripper)
+        moveServowithSpeed(base,      90,  90, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150,  70, 15, "midarm");
+        moveServowithSpeed(upperarm, 120,  85, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120,   0, 15, "gripper"); // Open gripper
+        delay(2000);
+
+        // Step 6: Return to start position
+        moveServowithSpeed(base,      90,  90, 15, "base");
+        moveServowithSpeed(lowerarm, 120, 120, 15, "lowerarm");
+        moveServowithSpeed(midarm,   150, 150, 15, "midarm");
+        moveServowithSpeed(upperarm, 120, 120, 15, "upperarm");
+        moveServowithSpeed(rotary,   120,  60, 15, "rotary");
+        moveServowithSpeed(gripper,  120,   0, 15, "gripper");
+        delay(2000);
+    }
+}
