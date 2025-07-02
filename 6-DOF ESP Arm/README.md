@@ -161,8 +161,9 @@ This project uses the 38-pin ESP32 development board, as shown below:
 ```
 6-DOF ESP Arm/
 │
-├── 6DOFArm.ino
-├── README.md
+├── 6DOFArm.ino           # Main code with VL53L0X sensor support
+├── 6DOFArm-NoSensor      # No-sensor version for simulation and development
+├── README.md             # Project documentation
 └── images/
     ├── arm_front.jpg
     ├── arm_side.jpg
@@ -171,6 +172,11 @@ This project uses the 38-pin ESP32 development board, as shown below:
     ├── VL53L0X.jpg
     └── ESP32.jpg
 ```
+
+- **6DOFArm.ino**: Main code for the robotic arm with VL53L0X sensor integration.
+- **6DOFArm-NoSensor**: Alternative code version that does not require the VL53L0X sensor, useful for simulation, development, and mechanical testing.
+- **README.md**: This documentation file.
+- **images/**: Folder containing reference images and diagrams used in this documentation.
 
 ---
 
@@ -372,6 +378,52 @@ The following table summarizes the sequence of servo angles (in degrees) for eac
 - Some steps may repeat the same angle for certain servos if they do not move during that step.
 - The rotary claw and gripper (claw) are only actuated during pick and drop actions.
 - The actual code may use the same value for multiple servos in some steps for simplicity.
+
+---
+
+## No-Sensor Version (Simulation & Development)
+
+If you do not have a VL53L0X sensor available, you can use the **no-sensor version** of the code (`6DOFArm-NoSensor`) for simulation, testing, and development. This version allows you to verify servo wiring, test movement sequences, and develop your arm's mechanics without requiring any sensor hardware.
+
+### How It Works
+
+- The no-sensor code removes all references to the VL53L0X sensor.
+- The arm continuously runs through the full pick-and-place sequence in a loop, moving the servos through the same angles as the sensor-triggered version.
+- This is useful for:
+  - Mechanical testing and calibration
+  - Demonstrating the arm's motion
+  - Developing and debugging servo wiring and movement logic
+
+### Usage
+
+1. Open `6DOFArm-NoSensor` in the Arduino IDE.
+2. Upload it to your ESP32 board.
+3. The arm will automatically and repeatedly perform the pick-and-place sequence, moving through all programmed positions.
+4. You do **not** need to connect the VL53L0X sensor for this version.
+
+### Example Sequence
+
+The no-sensor code will move the servos through the following steps:
+
+1. **Move all axes to initial position**
+2. **Move to pick position**
+3. **Pick object (lower arm, close gripper)**
+4. **Return to initial position with object**
+5. **Drop object (lower arm, open gripper)**
+6. **Return to start position**
+
+Each step uses the same servo angles as shown in the [Path Plan Table](#path-plan-table).
+
+### When to Use
+
+- When you do not have a VL53L0X sensor available.
+- For simulation in environments where sensor input is not possible.
+- For initial development, calibration, or demonstration purposes.
+
+---
+
+**Tip:**  
+Once you have verified your servo wiring and arm mechanics with the no-sensor version, you can switch to the main code with sensor integration for full functionality.
 
 ---
 
