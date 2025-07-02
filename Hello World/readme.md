@@ -8,8 +8,7 @@ This directory is a lighthearted collection of "Hello World" programs, written i
 - **hello.c** – Classic C version with ASCII art and a profile.
 - **hello.cpp** – C++ version, now with extra Unicode flair.
 - **hello.py** – Python version, cross-platform and colorful.
-- **hello.ps1** – PowerShell version for Windows fans.
-- **hello.bf** – Brainfuck, because why not?
+- **hello.bf** – [Brainfuck](https://brainfuck.org/brainfuck.html), because why not? and Yes it is a real language.
 - **readme.md** – This file, plus a wall of emoji blocks for maximum visual impact.
 
 ## Why?
