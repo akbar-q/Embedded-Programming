@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+*.bf linguist-language=Brainfuck
+*.b linguist-language=Brainfuck Source
