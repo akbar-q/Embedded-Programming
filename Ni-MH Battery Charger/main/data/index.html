@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Battery Monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Battery Status</h1>
+  <div id="cells"></div>
+  <script>
+    async function fetchData() {
+      const res = await fetch('/data');
+      const json = await res.json();
+      let out = '';
+      for (let key in json) {
+        out += `<p>${key}: ${json[key]}</p>`;
+      }
+      document.getElementById('cells').innerHTML = out;
+    }
+    setInterval(fetchData, 1000);
+    fetchData();
+  </script>
+</body>
+</html>
