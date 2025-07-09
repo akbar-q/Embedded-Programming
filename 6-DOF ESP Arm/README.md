@@ -40,6 +40,12 @@ To install a library:
 
 Repeat for each required library.
 
+### 4. Install the Driver if Required
+
+A lot of ESP32 Dev Boards use the CP2102 Serial to USB Controller rather than the CH340G
+
+CP2102: https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads
+
 ---
 
 ## Project Images
