@@ -4,23 +4,197 @@
   font-weight: normal;
   font-style: normal;
 }
+@font-face {
+  font-family: 'Oxanium';
+  src: url('/fonts/oxanium.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Montserrat Alternates';
+  src: url('/fonts/montserratalternates.woff2') format('woff2');
+  font-weight: 400;
+}
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: #111;
+  font-family: 'Oxanium', 'Montserrat Alternates', 'Inter', Arial, sans-serif;
+  background: #002724;
   color: #eee;
+  margin: 0;
+  padding: 0;
+}
+
+.custom-navbar {
+  width: 98%;              /* Bar is 95% of the viewport width */
+  background: #232927;
+  border-radius: 12px;
+  margin: 24px auto 0 auto; /* Centered with top margin */
+  max-width: 1800px;        /* Prevents it from getting too wide on large screens */
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;               /* Remove horizontal padding here */
+  display: flex;
+  justify-content: center;
+}
+
+.custom-navbar-inner {
+  width: 96%;
+  max-width: 1800px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+}
+
+.custom-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.logo {
+  height: 56px;
+  width: 56px;
+  border-radius: 50%;
+  background: #232927;
+  object-fit: contain;
+}
+
+.site-title {
+  font-family: 'Montserrat Alternates', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-left: 8px;
+}
+
+.custom-navbar-btn {
+  background: #ffd000;
+  color: #232927;
+  font-family: 'Montserrat Alternates', Arial, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 36px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.custom-navbar-btn:hover {
+  background: #ffe066;
+  color: #232927;
+}
+
+.custom-navbar-buttons {
+  display: flex;
+  gap: 18px;
+}
+
+.custom-navbar-btn-outline {
+  background: transparent;
+  color: #ffd000;
+  font-family: 'Montserrat Alternates', Arial, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border: 2px solid #ffd000;
+  border-radius: 8px;
+  padding: 12px 32px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.custom-navbar-btn-outline:hover {
+  background: #ffd000;
+  color: #232927;
+}
+
+.battery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 24px;
+  justify-items: center;
+  margin: 2rem auto;
+  max-width: 800px;
+}
+
+.cell-card {
+  background: #232927;
+  border-radius: 10px;
+  padding: 1.2rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  color: #fff;
+  width: 100%;
+  max-width: 180px;
   text-align: center;
+  font-family: 'Oxanium', Arial, sans-serif;
+}
+
+.cell-title {
+  font-size: 1.1rem;
+  font-family: 'Montserrat Alternates', Arial, sans-serif;
+  margin-bottom: 0.5rem;
+  color: #ffd000;
+  font-weight: 600;
+}
+
+.cell-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #aaa;
+  font-family: 'Inter', Arial, sans-serif;
+  opacity: 0.85;
+  padding-bottom: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .custom-navbar-inner {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 8px;
+  }
+  .site-title {
+    font-size: 1.2rem;
+  }
+  .logo {
+    height: 40px;
+    width: 40px;
+  }
+  .custom-navbar-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  .battery-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    max-width: 98vw;
+  }
+  .cell-card {
+    padding: 0.8rem 0.5rem;
+    max-width: 120px;
+  }
+}
+main {
   padding: 2rem;
+  text-align: center;
 }
-
-p {
-  margin: 0.5rem auto;
-  font-size: 1.2rem;
-}
-
 h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
+  font-family: 'Oxanium', Arial, sans-serif;
 }
 
 /* End of File */

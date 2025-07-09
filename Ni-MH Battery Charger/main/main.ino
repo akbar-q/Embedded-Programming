@@ -1,6 +1,13 @@
 /*
 ESP32 Battery Monitor Web UI with Access Point, LED fading, and SPIFFS-hosted files.
 Includes 5-cell voltage sensing, PWM LED control, 7-segment display, and web UI hosting with local fonts/images.
+
+Thanks to https://www.youtube.com/watch?v=Qw5mQus-WwA
+
+CTRL+SHIFT+P to Open Plugins to Upload Files
+
+Search for LittleFS to Find the Upload to ESP32 Filesystem Plugin
+
 */
 
 // ================== Arduino Sketch (ESP32) ==================
@@ -91,6 +98,67 @@ void setup() {
     }
     json += "}";
     server.send(200, "application/json", json);
+  });
+
+  server.on("/run/dino.html", []() {
+    File file = LittleFS.open("/run/dino.html", "r");
+    server.streamFile(file, "text/html");
+    file.close();
+  });
+  server.on("/run/dino.js", []() {
+    File file = LittleFS.open("/run/dino.js", "r");
+    server.streamFile(file, "application/javascript");
+    file.close();
+  });
+  server.on("/run/dino.css", []() {
+    File file = LittleFS.open("/run/dino.css", "r");
+    server.streamFile(file, "text/css");
+    file.close();
+  });
+  server.on("/run/index.js", []() {
+    File file = LittleFS.open("/run/index.js", "r");
+    server.streamFile(file, "application/javascript");
+    file.close();
+  });
+  server.on("/run/index.css", []() {
+    File file = LittleFS.open("/run/index.css", "r");
+    server.streamFile(file, "text/css");
+    file.close();
+  });
+  // ...and so on for any other files in /run/
+
+  // 100% assets
+  server.on("/run/assets/default_100_percent/100-disabled.png", []() {
+    File file = LittleFS.open("/run/assets/default_100_percent/100-disabled.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
+  });
+  server.on("/run/assets/default_100_percent/100-error-offline.png", []() {
+    File file = LittleFS.open("/run/assets/default_100_percent/100-error-offline.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
+  });
+  server.on("/run/assets/default_100_percent/100-offline-sprite.png", []() {
+    File file = LittleFS.open("/run/assets/default_100_percent/100-offline-sprite.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
+  });
+
+  // 200% assets
+  server.on("/run/assets/default_200_percent/200-disabled.png", []() {
+    File file = LittleFS.open("/run/assets/default_200_percent/200-disabled.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
+  });
+  server.on("/run/assets/default_200_percent/200-error-offline.png", []() {
+    File file = LittleFS.open("/run/assets/default_200_percent/200-error-offline.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
+  });
+  server.on("/run/assets/default_200_percent/200-offline-sprite.png", []() {
+    File file = LittleFS.open("/run/assets/default_200_percent/200-offline-sprite.png", "r");
+    server.streamFile(file, "image/png");
+    file.close();
   });
 
   server.onNotFound([]() {
