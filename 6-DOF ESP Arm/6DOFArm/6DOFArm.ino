@@ -1,5 +1,5 @@
 #include <ESP32Servo.h>
-#include "Adafruit_VL53L0X.h"    //  lines 1-2 include the necessary libraries to code the MG996r servos and VL53L0x time of flight sensor.
+//#include "Adafruit_VL53L0X.h"    //  lines 1-2 include the necessary libraries to code the MG996r servos and VL53L0x time of flight sensor.
 
 Servo base;                                                                
 Servo lowerarm; 
@@ -9,7 +9,7 @@ Servo rotataryclaw;
 Servo claw;         //lines 4-9 Define the servos in the program and name them, since this is a code for 6 servo arm so 6 servos were defined
 
 
-Adafruit_VL53L0X tofSensor = Adafruit_VL53L0X();  //This line adds the time of flight sensor to the program
+//Adafruit_VL53L0X tofSensor = Adafruit_VL53L0X();  //This line adds the time of flight sensor to the program
 
 
 void displayServoPositions(int pos, const char* servoName) {
@@ -40,12 +40,12 @@ void setup(){
   // Initialize serial communication
   Serial.begin(115200);
   //tof sensor activation
-  Serial.println("Adafruit VL53L0X test");
-  if (!tofSensor.begin()) {
-    Serial.println(F("Failed to boot VL53L0X"));
-    while (1);
-  }
-  Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
+//  Serial.println("Adafruit VL53L0X test");
+//  if (!tofSensor.begin()) {
+//    Serial.println(F("Failed to boot VL53L0X"));
+//   while (1);
+//  }
+//  Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
 
 
   // Attach servos to pins
@@ -61,17 +61,17 @@ void setup(){
 
 void loop() {
   //Object detection by tof
-  VL53L0X_RangingMeasurementData_t measure;
+//  VL53L0X_RangingMeasurementData_t measure;
     
-  Serial.print("Reading a measurement... ");
-  tofSensor.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+//  Serial.print("Reading a measurement... ");
+//  tofSensor.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
 
-  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
-    Serial.print("Distance (mm): "); Serial.println(measure.RangeMilliMeter);
+//  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+//    Serial.print("Distance (mm): "); Serial.println(measure.RangeMilliMeter);
   
     
   // Check if object is within 5 cm (50 mm)
-    if (measure.RangeMilliMeter > 0 && measure.RangeMilliMeter <= 150) {
+ //   if (measure.RangeMilliMeter > 0 && measure.RangeMilliMeter <= 150) {
 //Step 2 move all the axes to initial position
 moveServoWithSpeed(base, 90, 90, 15, "base");
 moveServoWithSpeed(lowerarm, 120, 120, 15, "lowerarm");
@@ -110,10 +110,10 @@ moveServoWithSpeed(midarm, 70, 150, 10, "lowerarm");
 moveServoWithSpeed(upperarm, 85, 120, 10, "lowerarm");
 
 
-}
+/* }
 } else {
     Serial.println("Out of range"); //This condition here keeps the servos from running incase the object is not detected by the tof sensor
   } 
-
+*/
   delay(300); // Delay for sensor updates
 }
