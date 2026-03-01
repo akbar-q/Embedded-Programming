@@ -161,7 +161,74 @@ This gives “basic occupancy comfort mode” with activity-sensitive AC use.
 
 ---
 
-## 8) Quick troubleshooting
+## 8) Pseudo block diagram
+
+```mermaid
+flowchart LR
+  PIR[PIR Sensor GPIO27]
+  EDGE[Edge Detect + Debounce\nMIN_TRIGGER_GAP_MS]
+  BUF[Trigger Timestamp Buffer\nMAX_TRIGGERS entries]
+  OCC[Occupancy Decision\nOCCUPIED_TIMEOUT_MS]
+  CNT[Recent Trigger Counter\nTRIGGER_WINDOW_MS]
+  ACDEC[AC Decision\ncount >= AC_TRIGGER_THRESHOLD]
+  AUTO[Automation Apply]
+  OUT[Outputs\nLights GPIO16\nAC GPIO17\nTV GPIO18\nFan GPIO19]
+  API[Web API /api/status]
+  UI[Embedded Dashboard UI\n1 second polling]
+
+  PIR --> EDGE --> BUF
+  BUF --> OCC
+  BUF --> CNT --> ACDEC
+  OCC --> AUTO
+  ACDEC --> AUTO
+  AUTO --> OUT
+  OUT --> API --> UI
+```
+
+Pseudo interpretation:
+
+- Sensor input enters edge detection.
+- Valid triggers are timestamped in a rolling buffer.
+- Occupancy and activity level are computed from time windows.
+- Automation sets device states and writes GPIO outputs.
+- API exposes state to the dashboard for live monitoring.
+
+---
+
+## 9) Flow chart of logic
+
+```mermaid
+flowchart TD
+  A[Start loop] --> B[Read PIR level]
+  B --> C{Rising edge?}
+  C -- No --> H[Keep previous trigger state]
+  C -- Yes --> D{Gap >= MIN_TRIGGER_GAP_MS?}
+  D -- No --> H
+  D -- Yes --> E[Store trigger time\nUpdate lastTriggerMs]
+
+  H --> F[Compute occupied\nnow - lastTriggerMs <= OCCUPIED_TIMEOUT_MS]
+  E --> F
+  F --> G[Count recent triggers\nwithin TRIGGER_WINDOW_MS]
+  G --> I{occupied?}
+
+  I -- No --> J[lights OFF\ntv OFF\nfan OFF\nac OFF]
+  I -- Yes --> K[lights ON\ntv ON\nfan ON]
+  K --> L{count >= AC_TRIGGER_THRESHOLD?}
+  L -- Yes --> M[ac ON]
+  L -- No --> N[ac OFF]
+
+  J --> O[Write relays/GPIO]
+  M --> O
+  N --> O
+
+  O --> P[Handle web server client]
+  P --> Q[delay 10ms]
+  Q --> A
+```
+
+---
+
+## 10) Quick troubleshooting
 
 ### Dashboard not opening
 
@@ -189,7 +256,7 @@ This gives “basic occupancy comfort mode” with activity-sensitive AC use.
 
 ---
 
-## 9) Arduino IDE upload guide (real ESP32, optional)
+## 11) Arduino IDE upload guide (real ESP32, optional)
 
 1. Install ESP32 board package from Espressif.
 2. Select your ESP32 board and COM port.
@@ -202,7 +269,7 @@ No filesystem plugin needed because UI is embedded in code.
 
 ---
 
-## 10) Security note
+## 12) Security note
 
 Before real deployment, change AP password in code:
 

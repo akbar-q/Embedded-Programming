@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "author": "Rokie Decentra",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pir-motion-sensor",
+      "id": "pir1",
+      "top": -90,
+      "left": 380,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledLight",
+      "top": 170,
+      "left": 510,
+      "attrs": {
+        "color": "yellow"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledAc",
+      "top": 250,
+      "left": 510,
+      "attrs": {
+        "color": "cyan"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledTv",
+      "top": 330,
+      "left": 510,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledFan",
+      "top": 410,
+      "left": 510,
+      "attrs": {
+        "color": "green"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+
+    [
+      "esp:3V3",
+      "pir1:VCC",
+      "red",
+      [
+        "h160",
+        "v-90"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "pir1:GND",
+      "black",
+      [
+        "h170",
+        "v-75"
+      ]
+    ],
+    [
+      "esp:27",
+      "pir1:OUT",
+      "orange",
+      [
+        "h180",
+        "v-85"
+      ]
+    ],
+
+    [
+      "esp:3V3",
+      "ledLight:A",
+      "orange",
+      [
+        "h90",
+        "v170",
+        "h240"
+      ]
+    ],
+    [
+      "esp:16",
+      "ledLight:C",
+      "yellow",
+      [
+        "h240",
+        "v170"
+      ]
+    ],
+
+    [
+      "esp:3V3",
+      "ledAc:A",
+      "#ff4d4d",
+      [
+        "h80",
+        "v250",
+        "h260"
+      ]
+    ],
+    [
+      "esp:17",
+      "ledAc:C",
+      "cyan",
+      [
+        "h260",
+        "v250"
+      ]
+    ],
+
+    [
+      "esp:3V3",
+      "ledTv:A",
+      "#ff7a7a",
+      [
+        "h70",
+        "v330",
+        "h280"
+      ]
+    ],
+    [
+      "esp:18",
+      "ledTv:C",
+      "blue",
+      [
+        "h280",
+        "v330"
+      ]
+    ],
+
+    [
+      "esp:3V3",
+      "ledFan:A",
+      "#ffaaaa",
+      [
+        "h60",
+        "v410",
+        "h300"
+      ]
+    ],
+    [
+      "esp:19",
+      "ledFan:C",
+      "green",
+      [
+        "h300",
+        "v410"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}
