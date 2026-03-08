@@ -66,14 +66,16 @@ Why LEDs? In Wokwi, LEDs are the easiest visible stand-in for relays/appliances.
 
 - PIR `VCC` -> ESP32 `3V3`
 - PIR `GND` -> ESP32 `GND`
-- PIR `OUT` -> ESP32 `GPIO27` (`PIR_PIN`)
+- PIR `OUT` -> ESP32 `GPIO2` (`PIR_PIN`)
 
 #### Outputs (appliance channels)
 
-- `LIGHT_PIN` = GPIO16 -> resistor -> LED -> GND
-- `AC_PIN` = GPIO17 -> resistor -> LED -> GND
-- `TV_PIN` = GPIO18 -> resistor -> LED -> GND
-- `FAN_PIN` = GPIO19 -> resistor -> LED -> GND
+- `LIGHT_PIN` = GPIO3 -> resistor -> LED -> GND
+- `AC_PIN` = GPIO4 -> resistor -> LED -> GND
+- `TV_PIN` = GPIO5 -> resistor -> LED -> GND
+- `FAN_PIN` = GPIO6 -> resistor -> LED -> GND
+
+ESP32-C3 note: avoid GPIO20/GPIO21 for this project on many boards, because they are often USB/JTAG related.
 
 If you later use a real relay module, check relay polarity settings (explained below).
 
@@ -90,8 +92,8 @@ When running, Wokwi shows a network URL for the ESP32 web server. Open it in you
 
 If you are testing on real hardware (not Wokwi), use:
 
-- SSID: `GM-EEE-Occupancy`
-- Password: `change-me-123`
+- SSID: `GMU-Occupancy`
+- Password: `changeme123`
 - URL: `http://192.168.4.1/`
 
 ---
@@ -165,14 +167,14 @@ This gives “basic occupancy comfort mode” with activity-sensitive AC use.
 
 ```mermaid
 flowchart LR
-  PIR[PIR Sensor GPIO27]
+  PIR[PIR Sensor GPIO2]
   EDGE[Edge Detect + Debounce\nMIN_TRIGGER_GAP_MS]
   BUF[Trigger Timestamp Buffer\nMAX_TRIGGERS entries]
   OCC[Occupancy Decision\nOCCUPIED_TIMEOUT_MS]
   CNT[Recent Trigger Counter\nTRIGGER_WINDOW_MS]
   ACDEC[AC Decision\ncount >= AC_TRIGGER_THRESHOLD]
   AUTO[Automation Apply]
-  OUT[Outputs\nLights GPIO16\nAC GPIO17\nTV GPIO18\nFan GPIO19]
+  OUT[Outputs\nLights GPIO3\nAC GPIO4\nTV GPIO5\nFan GPIO6]
   API[Web API /api/status]
   UI[Embedded Dashboard UI\n1 second polling]
 
@@ -233,11 +235,17 @@ flowchart TD
 ### Dashboard not opening
 
 - In Wokwi, ensure simulation is running and open the provided web URL.
-- On real hardware, confirm you joined `GM-EEE-Occupancy` WiFi.
+- On real hardware, confirm you joined `GMU-Occupancy` WiFi.
 
 ### PIR not changing
 
-- Confirm PIR `OUT` is connected to `GPIO27`.
+- Confirm PIR `OUT` is connected to `GPIO2`.
+
+### Hotspot not visible on ESP32-C3
+
+- Open Serial Monitor at `115200` and reset the board.
+- Look for `[OK] Hotspot started.` and the printed AP SSID/IP.
+- If you see `[ERROR] WiFi.softAP() failed`, verify board selection is an ESP32-C3 board and power-cycle the board.
 - In Wokwi, toggle PIR state manually.
 
 ### Outputs not behaving
@@ -273,6 +281,6 @@ No filesystem plugin needed because UI is embedded in code.
 
 Before real deployment, change AP password in code:
 
-- `kApPass = "change-me-123"`
+- `kApPass = "changeme123"`
 
 Use a strong password and avoid exposing this AP outside controlled environments.

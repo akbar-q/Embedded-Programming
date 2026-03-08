@@ -10,8 +10,8 @@ ESP32 Occupancy IoT Server (Self-Contained AP)
 
 // -------------------- WiFi Access Point --------------------
 // Self-contained server: connect your phone/laptop to this AP, then browse to http://192.168.4.1
-static const char* kApSsid = "GM-EEE-Occupancy";
-static const char* kApPass = "change-me-123"; // min 8 chars; change before demos
+static const char* kApSsid = "GMU-Occupancy";
+static const char* kApPass = "changeme123"; // min 8 chars; change before demos
 
 WebServer server(80);
 
@@ -104,12 +104,13 @@ static const char kDashboardHtml[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
-// -------------------- Pins (edit to match your wiring) --------------------
-static const int PIR_PIN   = 27; // PIR digital output
-static const int LIGHT_PIN = 16;
-static const int AC_PIN    = 17;
-static const int TV_PIN    = 18;
-static const int FAN_PIN   = 19;
+// -------------------- Pins (ESP32-C3 safer defaults) --------------------
+// Avoid GPIO20/GPIO21 on many C3 boards because they are USB/JTAG related.
+static const int PIR_PIN   = 2; // PIR digital output
+static const int LIGHT_PIN = 3;
+static const int AC_PIN    = 4;
+static const int TV_PIN    = 5;
+static const int FAN_PIN   = 6;
 
 // Relay boards are often active-low.
 static const bool RELAY_ACTIVE_LOW = true;
@@ -247,6 +248,7 @@ static void setupRoutes() {
 
 void setup() {
   Serial.begin(115200);
+  delay(300);
 
   pinMode(PIR_PIN, INPUT);
   pinMode(LIGHT_PIN, OUTPUT);
@@ -261,9 +263,15 @@ void setup() {
   writeRelay(FAN_PIN, false);
 
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(kApSsid, kApPass);
-  Serial.println("AP SSID: " + String(kApSsid));
-  Serial.println("AP IP: " + WiFi.softAPIP().toString());
+  const bool apStarted = WiFi.softAP(kApSsid, kApPass);
+  if (!apStarted) {
+    Serial.println("[ERROR] WiFi.softAP() failed. Hotspot not started.");
+    Serial.println("[TIP] Check board selection is ESP32-C3 and reset power.");
+  } else {
+    Serial.println("[OK] Hotspot started.");
+    Serial.println("AP SSID: " + String(kApSsid));
+    Serial.println("AP IP: " + WiFi.softAPIP().toString());
+  }
 
   setupRoutes();
   server.begin();
