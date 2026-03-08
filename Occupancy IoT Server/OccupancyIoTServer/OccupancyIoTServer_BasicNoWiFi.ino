@@ -30,6 +30,8 @@
   - This code supports both active-low and active-high modules.
 */
 
+#include <Arduino.h>
+
 // -------------------- PIN SETUP --------------------
 // Input pin from PIR sensor output.
 const int PIR_PIN = 2;
