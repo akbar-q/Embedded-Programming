@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <stdlib.h>
 
 /*
   4-Channel Plant Watering System
@@ -22,6 +23,10 @@
 const int moistureThreshold = 700;
 const unsigned long pumpRunTimeMs = 5000;
 const unsigned long gapBetweenFramesMs = 1000;
+const unsigned long sensorCheckIntervalMs = 500;
+const float pumpFlowRateMlPerSecond = 10.303;
+const byte numberOfChannels = 4;
+const unsigned long millisecondsPerDay = 86400000UL;
 
 // Change these two lines if your relay module logic is reversed.
 const int RELAY_ON = LOW;
@@ -42,6 +47,26 @@ const int relayPin4 = 11;
 // This variable keeps track of which frame runs next.
 // 0 = Channel 1, 1 = Channel 2, 2 = Channel 3, 3 = Channel 4
 int currentFrame = 0;
+
+struct DailyUsageRecord
+{
+  unsigned long dayNumber;
+  float usageMl[numberOfChannels];
+  DailyUsageRecord *next;
+};
+
+// Water-use totals for the current day and a growing history of completed days.
+// These values reset if the Arduino is switched off or reset.
+float currentDayUsageMl[numberOfChannels] = {0, 0, 0, 0};
+DailyUsageRecord *firstCompletedDay = NULL;
+DailyUsageRecord *lastCompletedDay = NULL;
+unsigned long currentDayNumber = 1;
+unsigned long currentDayStartTime = 0;
+bool dailyHistoryStorageFull = false;
+
+void checkForNewDay();
+void printUsageStatistics();
+void printDayUsage(unsigned long dayNumber, const float usageMl[]);
 
 void setup()
 {
@@ -67,13 +92,19 @@ void setup()
   Serial.println(moistureThreshold);
   Serial.print("Pump timeout (ms): ");
   Serial.println(pumpRunTimeMs);
+  Serial.print("Pump flow rate (mL/s): ");
+  Serial.println(pumpFlowRateMlPerSecond, 3);
   Serial.println("Only one channel is checked at a time.");
   Serial.println("Only one pump is allowed to run at a time.");
   Serial.println("========================================");
+
+  currentDayStartTime = millis();
 }
 
 void loop()
 {
+  checkForNewDay();
+
   // The code is split into 4 simple frames.
   // Each pass through loop() processes only one frame.
   switch (currentFrame)
@@ -81,28 +112,28 @@ void loop()
     case 0:
       Serial.println();
       Serial.println("----- FRAME 1: Checking Channel 1 -----");
-      checkAndWaterChannel(1, sensorPin1, relayPin1);
+      checkAndWaterChannel(1, sensorPin1, relayPin1, 0);
       currentFrame = 1;
       break;
 
     case 1:
       Serial.println();
       Serial.println("----- FRAME 2: Checking Channel 2 -----");
-      checkAndWaterChannel(2, sensorPin2, relayPin2);
+      checkAndWaterChannel(2, sensorPin2, relayPin2, 1);
       currentFrame = 2;
       break;
 
     case 2:
       Serial.println();
       Serial.println("----- FRAME 3: Checking Channel 3 -----");
-      checkAndWaterChannel(3, sensorPin3, relayPin3);
+      checkAndWaterChannel(3, sensorPin3, relayPin3, 2);
       currentFrame = 3;
       break;
 
     case 3:
       Serial.println();
       Serial.println("----- FRAME 4: Checking Channel 4 -----");
-      checkAndWaterChannel(4, sensorPin4, relayPin4);
+      checkAndWaterChannel(4, sensorPin4, relayPin4, 3);
       currentFrame = 0;
       break;
   }
@@ -111,7 +142,7 @@ void loop()
   delay(gapBetweenFramesMs);
 }
 
-void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin)
+void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin, byte channelIndex)
 {
   int sensorValue = analogRead(sensorPin);
 
@@ -139,24 +170,74 @@ void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin)
     digitalWrite(relayPin, RELAY_ON);
 
     unsigned long pumpStartTime = millis();
+    bool thresholdReached = false;
+
+    // Keep checking the same sensor while its pump runs. The pump stops as
+    // soon as the soil reaches the threshold, or after the safety timeout.
     while (millis() - pumpStartTime < pumpRunTimeMs)
     {
-      unsigned long elapsedSeconds = (millis() - pumpStartTime) / 1000;
+      unsigned long elapsedBeforeWaitMs = millis() - pumpStartTime;
+      unsigned long remainingPumpTimeMs = pumpRunTimeMs - elapsedBeforeWaitMs;
+      unsigned long waitTimeMs = sensorCheckIntervalMs;
+
+      // Do not let the final sensor check extend the maximum pump timeout.
+      if (waitTimeMs > remainingPumpTimeMs)
+      {
+        waitTimeMs = remainingPumpTimeMs;
+      }
+
+      delay(waitTimeMs);
+
+      int currentSensorValue = analogRead(sensorPin);
+      unsigned long elapsedMs = millis() - pumpStartTime;
 
       Serial.print("Channel ");
       Serial.print(channelNumber);
-      Serial.print(" watering... ");
-      Serial.print(elapsedSeconds);
-      Serial.println(" second(s) elapsed");
+      Serial.print(" watering... sensor reading: ");
+      Serial.print(currentSensorValue);
+      Serial.print(", elapsed: ");
+      Serial.print(elapsedMs);
+      Serial.println(" ms");
 
-      delay(1000);
+      if (currentSensorValue <= moistureThreshold)
+      {
+        thresholdReached = true;
+        break;
+      }
     }
 
     digitalWrite(relayPin, RELAY_OFF);
 
+    unsigned long actualPumpRunTimeMs = millis() - pumpStartTime;
+    float waterUsedMl = (actualPumpRunTimeMs / 1000.0) * pumpFlowRateMlPerSecond;
+    currentDayUsageMl[channelIndex] += waterUsedMl;
+
     Serial.print("Channel ");
     Serial.print(channelNumber);
-    Serial.println(" pump timeout reached. Pump OFF.");
+    Serial.print(" pump run time: ");
+    Serial.print(actualPumpRunTimeMs);
+    Serial.println(" ms");
+
+    Serial.print("Channel ");
+    Serial.print(channelNumber);
+    Serial.print(" water used this run: ");
+    Serial.print(waterUsedMl, 2);
+    Serial.println(" mL");
+
+    if (thresholdReached)
+    {
+      Serial.print("Channel ");
+      Serial.print(channelNumber);
+      Serial.println(" reached the moisture threshold. Pump OFF.");
+    }
+    else
+    {
+      Serial.print("Channel ");
+      Serial.print(channelNumber);
+      Serial.println(" pump timeout reached. Pump OFF.");
+    }
+
+    printUsageStatistics();
     Serial.println("Moving to next channel.");
   }
   else
@@ -166,4 +247,95 @@ void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin)
     Serial.println(" moisture is OK. Pump stays OFF.");
     Serial.println("Moving to next channel.");
   }
+}
+
+void checkForNewDay()
+{
+  if (millis() - currentDayStartTime < millisecondsPerDay)
+  {
+    return;
+  }
+
+  // Preserve each completed day until the Arduino runs out of available RAM.
+  if (!dailyHistoryStorageFull)
+  {
+    DailyUsageRecord *newDay = (DailyUsageRecord *)malloc(sizeof(DailyUsageRecord));
+
+    if (newDay == NULL)
+    {
+      dailyHistoryStorageFull = true;
+      Serial.println("WARNING: Daily history memory is full.");
+      Serial.println("New daily totals will still be shown, but cannot be saved for later reports.");
+    }
+    else
+    {
+      newDay->dayNumber = currentDayNumber;
+      newDay->next = NULL;
+
+      for (byte channelIndex = 0; channelIndex < numberOfChannels; channelIndex++)
+      {
+        newDay->usageMl[channelIndex] = currentDayUsageMl[channelIndex];
+      }
+
+      if (firstCompletedDay == NULL)
+      {
+        firstCompletedDay = newDay;
+      }
+      else
+      {
+        lastCompletedDay->next = newDay;
+      }
+
+      lastCompletedDay = newDay;
+    }
+  }
+
+  for (byte channelIndex = 0; channelIndex < numberOfChannels; channelIndex++)
+  {
+    currentDayUsageMl[channelIndex] = 0;
+  }
+
+  currentDayStartTime = millis();
+  currentDayNumber++;
+  Serial.println();
+  Serial.println("========== NEW DAY: USAGE REPORT ==========");
+  printUsageStatistics();
+}
+
+void printUsageStatistics()
+{
+  Serial.println("---------- WATER USAGE STATISTICS ----------");
+
+  DailyUsageRecord *storedDay = firstCompletedDay;
+  while (storedDay != NULL)
+  {
+    printDayUsage(storedDay->dayNumber, storedDay->usageMl);
+    storedDay = storedDay->next;
+  }
+
+  printDayUsage(currentDayNumber, currentDayUsageMl);
+  Serial.println("--------------------------------------------");
+}
+
+void printDayUsage(unsigned long dayNumber, const float usageMl[])
+{
+  float totalUsageMl = 0;
+
+  Serial.print("Day ");
+  Serial.print(dayNumber);
+  Serial.print(": ");
+
+  for (byte channelIndex = 0; channelIndex < numberOfChannels; channelIndex++)
+  {
+    Serial.print("Plant ");
+    Serial.print(channelIndex + 1);
+    Serial.print(" = ");
+    Serial.print(usageMl[channelIndex], 2);
+    Serial.print(" mL; ");
+    totalUsageMl += usageMl[channelIndex];
+  }
+
+  Serial.print("Total = ");
+  Serial.print(totalUsageMl, 2);
+  Serial.println(" mL");
 }

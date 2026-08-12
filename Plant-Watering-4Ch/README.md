@@ -26,6 +26,9 @@ The code checks only one sensor at a time and runs only one pump at a time. This
 ### Example Circuit Build
 ![Circuit](Images/Circuit.jpg)
 
+### Flow-Rate Measuring Cup
+![170 mL cup used for flow-rate measurement](Images/Cup.png)
+
 ## Arduino IDE Screenshots
 
 ### Arduino IDE Interface
@@ -201,6 +204,8 @@ These values are near the top of the file:
 const int moistureThreshold = 700;
 const unsigned long pumpRunTimeMs = 5000;
 const unsigned long gapBetweenFramesMs = 1000;
+const unsigned long sensorCheckIntervalMs = 500;
+const float pumpFlowRateMlPerSecond = 10.303;
 ```
 
 These are the main user settings you are expected to change when tuning the project.
@@ -210,11 +215,15 @@ These are the main user settings you are expected to change when tuning the proj
 | `moistureThreshold` | `700` | Decides when the code treats the soil as dry | Change it when your sensor readings do not match real wet/dry conditions |
 | `pumpRunTimeMs` | `5000` | Sets the maximum pump run time in milliseconds | Change it if 5 seconds is too short or too long for your test setup |
 | `gapBetweenFramesMs` | `1000` | Waits 1 second before moving to the next channel | Change it if you want faster or slower cycling between channels |
+| `sensorCheckIntervalMs` | `500` | Reads the active soil sensor every 0.5 seconds while its pump runs | Make it smaller for a faster threshold response, or larger for fewer readings |
+| `pumpFlowRateMlPerSecond` | `10.303` | Converts measured pump run time into millilitres used | Recalculate it if you change the pump, tube length, power supply, or water head |
 
 What they mean in simple terms:
 - `moistureThreshold`: the dryness trigger point
 - `pumpRunTimeMs`: how long the pump is allowed to run before timing out
 - `gapBetweenFramesMs`: the pause between one channel and the next
+- `sensorCheckIntervalMs`: how often the active sensor is checked during watering
+- `pumpFlowRateMlPerSecond`: how much water the pump delivers each second
 
 ### User Settings Explained For Beginners
 
@@ -260,6 +269,71 @@ With the current setting:
 - then channel 2 runs or is checked
 
 This small gap helps keep the output readable and slightly spaces out the relay activity.
+
+#### `sensorCheckIntervalMs`
+
+While a pump is running, the code reads that same channel's sensor every `500` milliseconds.
+
+If the moisture reaches the threshold during one of these checks, the pump is switched off early. This means a plant only receives water until it is wet enough, instead of always receiving the full 5-second maximum.
+
+#### `pumpFlowRateMlPerSecond`
+
+This setting lets the Arduino estimate how much water each plant has used.
+
+The current measured value is:
+
+```cpp
+const float pumpFlowRateMlPerSecond = 10.303;
+```
+
+The calculation is:
+
+$$
+\mathrm{water\ used\ in\ mL} = \left(\frac{\mathrm{pump\ run\ time\ in\ ms}}{1000}\right) \times \mathrm{flow\ rate\ in\ mL/s}
+$$
+
+For example, if a pump runs for `2000 ms`:
+
+$$
+\left(\frac{2000}{1000}\right) \times 10.303 = 20.606\text{ mL}
+$$
+
+The Serial Monitor rounds this example to `20.61 mL`.
+
+## Flow-Rate Measurement Procedure
+
+The water-use statistics are estimates based on the measured flow rate of the pump. This procedure was used to obtain the value currently in the code.
+
+![170 mL flow-rate cup](Images/Cup.png)
+
+### Measured Result
+
+- Cup volume: `170 mL` (the marked 6 oz cup used for the measurement)
+- Time to fill cup: `16.5 seconds`
+
+The flow-rate calculation is:
+
+$$
+\frac{170\text{ mL}}{16.5\text{ s}} = 10.303\text{ mL/s}
+$$
+
+This is why the code uses:
+
+```cpp
+const float pumpFlowRateMlPerSecond = 10.303;
+```
+
+### How To Repeat The Test
+
+1. Put the pump and normal tubing into a container of water.
+2. Place the outlet tube into the measuring cup.
+3. Run the pump using the same power supply used by the watering system.
+4. Start a timer when water begins to flow into the cup.
+5. Stop the timer when the water reaches the `170 mL` mark.
+6. Divide the volume in mL by the time in seconds.
+7. Replace `pumpFlowRateMlPerSecond` in the code with the new result.
+
+For the most accurate estimate, repeat the test several times and use the average flow rate. Flow changes if the pump, tube length, tubing height, supply voltage, or water level changes.
 
 ### Relay Logic Setting
 
@@ -378,6 +452,7 @@ Sensors: A0, A1, A2, A3
 Relays : 8, 9, 10, 11
 Moisture threshold: 700
 Pump timeout (ms): 5000
+Pump flow rate (mL/s): 10.303
 Only one channel is checked at a time.
 Only one pump is allowed to run at a time.
 ========================================
@@ -390,12 +465,15 @@ Only one pump is allowed to run at a time.
 Channel 1 sensor reading: 823
 Channel 1 threshold check: reading 823 > 700
 Channel 1 is DRY. Pump ON.
-Channel 1 watering... 0 second(s) elapsed
-Channel 1 watering... 1 second(s) elapsed
-Channel 1 watering... 2 second(s) elapsed
-Channel 1 watering... 3 second(s) elapsed
-Channel 1 watering... 4 second(s) elapsed
-Channel 1 pump timeout reached. Pump OFF.
+Channel 1 watering... sensor reading: 790, elapsed: 500 ms
+Channel 1 watering... sensor reading: 745, elapsed: 1000 ms
+Channel 1 watering... sensor reading: 695, elapsed: 1500 ms
+Channel 1 pump run time: 1500 ms
+Channel 1 water used this run: 15.45 mL
+Channel 1 reached the moisture threshold. Pump OFF.
+---------- WATER USAGE STATISTICS ----------
+Day 1: Plant 1 = 15.45 mL; Plant 2 = 0.00 mL; Plant 3 = 0.00 mL; Plant 4 = 0.00 mL; Total = 15.45 mL
+--------------------------------------------
 Moving to next channel.
 ```
 
@@ -409,45 +487,27 @@ Channel 2 moisture is OK. Pump stays OFF.
 Moving to next channel.
 ```
 
-### Example 4: Full Sequence Across Multiple Channels
+### Example 4: Daily Usage After Several Watering Runs
 
 ```text
------ FRAME 1: Checking Channel 1 -----
-Channel 1 sensor reading: 760
-Channel 1 threshold check: reading 760 > 700
-Channel 1 is DRY. Pump ON.
-Channel 1 watering... 0 second(s) elapsed
-Channel 1 watering... 1 second(s) elapsed
-Channel 1 watering... 2 second(s) elapsed
-Channel 1 watering... 3 second(s) elapsed
-Channel 1 watering... 4 second(s) elapsed
-Channel 1 pump timeout reached. Pump OFF.
-Moving to next channel.
-
------ FRAME 2: Checking Channel 2 -----
-Channel 2 sensor reading: 610
-Channel 2 threshold check: reading 610 > 700
-Channel 2 moisture is OK. Pump stays OFF.
-Moving to next channel.
-
------ FRAME 3: Checking Channel 3 -----
-Channel 3 sensor reading: 744
-Channel 3 threshold check: reading 744 > 700
-Channel 3 is DRY. Pump ON.
-Channel 3 watering... 0 second(s) elapsed
-Channel 3 watering... 1 second(s) elapsed
-Channel 3 watering... 2 second(s) elapsed
-Channel 3 watering... 3 second(s) elapsed
-Channel 3 watering... 4 second(s) elapsed
-Channel 3 pump timeout reached. Pump OFF.
-Moving to next channel.
-
------ FRAME 4: Checking Channel 4 -----
-Channel 4 sensor reading: 390
-Channel 4 threshold check: reading 390 > 700
-Channel 4 moisture is OK. Pump stays OFF.
-Moving to next channel.
+---------- WATER USAGE STATISTICS ----------
+Day 1: Plant 1 = 15.45 mL; Plant 2 = 12.88 mL; Plant 3 = 0.00 mL; Plant 4 = 20.61 mL; Total = 48.94 mL
+--------------------------------------------
 ```
+
+### Example 5: Report When The Second Day Starts
+
+When 24 hours have passed since the Arduino was started, the completed first day is saved and the Serial Monitor starts showing both days.
+
+```text
+========== NEW DAY: USAGE REPORT ==========
+---------- WATER USAGE STATISTICS ----------
+Day 1: Plant 1 = 15.45 mL; Plant 2 = 12.88 mL; Plant 3 = 0.00 mL; Plant 4 = 20.61 mL; Total = 48.94 mL
+Day 2: Plant 1 = 0.00 mL; Plant 2 = 0.00 mL; Plant 3 = 0.00 mL; Plant 4 = 0.00 mL; Total = 0.00 mL
+--------------------------------------------
+```
+
+On day 3, the report lists days 1, 2, and 3. The sketch has no configured maximum number of days: it keeps each completed day and prints the growing report whenever a pump runs or a new day starts.
 
 ### How To Read These Messages
 
@@ -456,7 +516,25 @@ Moving to next channel.
 - `threshold check` shows the exact test the code is using.
 - `is DRY. Pump ON.` means that channel crossed the watering threshold.
 - `moisture is OK. Pump stays OFF.` means no watering was needed.
+- `pump run time` is the actual time that pump was on, not always the full 5 seconds.
+- `water used this run` is calculated from the pump run time and the measured flow rate.
+- `WATER USAGE STATISTICS` shows the water used by each plant and the total for each stored day.
 - `pump timeout reached. Pump OFF.` confirms the 5 second safety timeout worked.
+
+## Daily Water-Use Statistics
+
+The sketch stores a separate water-use total for each plant. Whenever a pump stops, it adds the estimated mL used in that run to the current day's total and prints the report.
+
+The day counter starts when the Arduino starts. After each 24-hour period, the current day is saved and a new daily total begins.
+
+Important limitations:
+- The report uses 24-hour periods since startup, not calendar dates.
+- There is no configured day-count limit. Each completed day is added to the Arduino's RAM history.
+- RAM is physically finite. If it eventually becomes full, the Serial Monitor prints a warning; new daily totals still work, but new completed days cannot be added to the historic report.
+- Resetting, unplugging, or losing power to the Arduino clears the current totals and stored history.
+- The report prints every stored completed day plus the current day, so it keeps growing while memory is available.
+
+For permanent history across power loss or real calendar dates, the next upgrade would be an RTC module plus SD card, EEPROM, or Wi-Fi logging.
 
 ## How To Test It Safely
 
@@ -482,7 +560,7 @@ This confirms the Arduino-to-relay side is working.
 
 Connect one pump first.
 
-Make sure it runs only when the correct channel is dry and stops after 5 seconds.
+Make sure it runs only when the correct channel is dry, stops when the sensor reaches the threshold, or stops after no more than 5 seconds.
 
 Then connect the remaining pumps.
 
@@ -562,6 +640,7 @@ Check:
 - [Images/Sensor.jpg](Images/Sensor.jpg) is the moisture sensor photo.
 - [Images/Submersible-Pump.jpg](Images/Submersible-Pump.jpg) is the pump photo.
 - [Images/Circuit.jpg](Images/Circuit.jpg) is the circuit photo.
+- [Images/Cup.png](Images/Cup.png) is the 170 mL cup used to measure pump flow rate.
 - [Images/Interface.jpg](Images/Interface.jpg) shows the Arduino IDE workspace.
 - [Images/Select-Board.png](Images/Select-Board.png) shows where to click to choose the board.
 - [Images/Port.png](Images/Port.png) shows the Arduino Uno and COM3 selection example.
@@ -577,7 +656,10 @@ The main ideas are:
 - 4 pumps
 - one channel checked at a time
 - one pump allowed at a time
-- 5 second pump timeout for safety and testing
+- moisture checked every 500 ms while watering
+- pump stops at the moisture threshold or after the 5 second safety timeout
+- water use estimated in mL for every pump run
+- growing per-plant daily usage statistics with no configured day limit
 
 If you want to improve it later, the next common upgrades would be:
 - adding an LCD or OLED display
