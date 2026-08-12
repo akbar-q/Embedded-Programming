@@ -26,6 +26,20 @@ The code checks only one sensor at a time and runs only one pump at a time. This
 ### Example Circuit Build
 ![Circuit](Images/Circuit.jpg)
 
+## Arduino IDE Screenshots
+
+### Arduino IDE Interface
+![Arduino IDE interface](Images/Interface.jpg)
+
+### Select Board Button
+![Select board button](Images/Select-Board.png)
+
+### Port Selection Example
+![Port selection example](Images/Port.png)
+
+### Serial Monitor Button
+![Serial monitor button](Images/Serial-Monitor.png)
+
 ## What This System Does
 
 The program works in a repeating 4-step loop:
@@ -179,20 +193,73 @@ That way the pump stays off until the relay is triggered.
 
 The sketch is in [Plant-Watering-4Ch.ino](Plant-Watering-4Ch.ino).
 
-### Main Settings In The Code
+### User Settings In The Code
 
 These values are near the top of the file:
 
 ```cpp
-const int moistureThreshold = 400;
+const int moistureThreshold = 700;
 const unsigned long pumpRunTimeMs = 5000;
 const unsigned long gapBetweenFramesMs = 1000;
 ```
 
-What they mean:
-- `moistureThreshold`: the cutoff used to decide if a channel is dry
-- `pumpRunTimeMs`: the maximum time a pump can stay on in one pass
-- `gapBetweenFramesMs`: a small delay before checking the next channel
+These are the main user settings you are expected to change when tuning the project.
+
+| Setting | Current Value | What It Does | When To Change It |
+|---|---:|---|---|
+| `moistureThreshold` | `700` | Decides when the code treats the soil as dry | Change it when your sensor readings do not match real wet/dry conditions |
+| `pumpRunTimeMs` | `5000` | Sets the maximum pump run time in milliseconds | Change it if 5 seconds is too short or too long for your test setup |
+| `gapBetweenFramesMs` | `1000` | Waits 1 second before moving to the next channel | Change it if you want faster or slower cycling between channels |
+
+What they mean in simple terms:
+- `moistureThreshold`: the dryness trigger point
+- `pumpRunTimeMs`: how long the pump is allowed to run before timing out
+- `gapBetweenFramesMs`: the pause between one channel and the next
+
+### User Settings Explained For Beginners
+
+#### `moistureThreshold`
+
+This is the most important setting.
+
+The code currently uses:
+
+```cpp
+if (sensorValue > moistureThreshold)
+```
+
+So at the moment:
+- readings above `700` are treated as dry
+- readings at `700` or below are treated as wet enough
+
+Example:
+- sensor reading `820` means dry, so the pump will run
+- sensor reading `530` means wet enough, so the pump stays off
+
+If your sensors produce the opposite type of readings, keep the threshold idea the same but reverse the comparison in the code.
+
+#### `pumpRunTimeMs`
+
+This is written in milliseconds.
+
+Useful examples:
+- `1000` = 1 second
+- `3000` = 3 seconds
+- `5000` = 5 seconds
+- `10000` = 10 seconds
+
+This setting is a safety limit. Even if a sensor keeps saying the soil is dry, the pump will stop after this time and the code will move to the next channel.
+
+#### `gapBetweenFramesMs`
+
+This is the waiting time after each channel is processed.
+
+With the current setting:
+- channel 1 runs or is checked
+- the code waits 1 second
+- then channel 2 runs or is checked
+
+This small gap helps keep the output readable and slightly spaces out the relay activity.
 
 ### Relay Logic Setting
 
@@ -255,9 +322,23 @@ Plug the Arduino into your computer using USB.
 
 ### 3. Select The Correct Board
 
-In the Arduino IDE:
-- choose the correct board type
-- choose the correct COM port
+Use the Arduino IDE window shown below.
+
+![Arduino IDE main window](Images/Interface.jpg)
+
+Click the board selector area in the top bar.
+
+![Select board step](Images/Select-Board.png)
+
+Then choose your board and COM port.
+
+In your screenshot example, the selected hardware is:
+- Arduino Uno
+- COM3
+
+![Board and port example](Images/Port.png)
+
+If your computer shows a different COM port, select that instead. The exact COM number is not always the same on every PC.
 
 ### 4. Upload The Code
 
@@ -267,13 +348,19 @@ When upload is complete, open the Serial Monitor.
 
 ### 5. Set The Serial Monitor
 
+Click the Serial Monitor button in the Arduino IDE.
+
+![Open Serial Monitor](Images/Serial-Monitor.png)
+
 Set the Serial Monitor baud rate to:
 
 ```text
 9600
 ```
 
-## What You Will See In The Serial Monitor
+If the baud rate is wrong, the text will look corrupted or you may see no useful output.
+
+## Example Serial Monitor Outputs
 
 At startup, you should see messages showing:
 - the project name
@@ -282,12 +369,26 @@ At startup, you should see messages showing:
 - moisture threshold
 - pump timeout
 
-Then during normal running, you will see messages such as:
+### Example 1: Startup Output
+
+```text
+========================================
+4-Channel Plant Watering System Starting
+Sensors: A0, A1, A2, A3
+Relays : 8, 9, 10, 11
+Moisture threshold: 700
+Pump timeout (ms): 5000
+Only one channel is checked at a time.
+Only one pump is allowed to run at a time.
+========================================
+```
+
+### Example 2: Channel Is Dry And Pump Runs
 
 ```text
 ----- FRAME 1: Checking Channel 1 -----
-Channel 1 sensor reading: 523
-Channel 1 threshold check: reading 523 > 400
+Channel 1 sensor reading: 823
+Channel 1 threshold check: reading 823 > 700
 Channel 1 is DRY. Pump ON.
 Channel 1 watering... 0 second(s) elapsed
 Channel 1 watering... 1 second(s) elapsed
@@ -298,15 +399,64 @@ Channel 1 pump timeout reached. Pump OFF.
 Moving to next channel.
 ```
 
-If the soil is already wet enough, you should see messages more like this:
+### Example 3: Channel Is Wet Enough And Pump Stays Off
 
 ```text
 ----- FRAME 2: Checking Channel 2 -----
-Channel 2 sensor reading: 250
-Channel 2 threshold check: reading 250 > 400
+Channel 2 sensor reading: 450
+Channel 2 threshold check: reading 450 > 700
 Channel 2 moisture is OK. Pump stays OFF.
 Moving to next channel.
 ```
+
+### Example 4: Full Sequence Across Multiple Channels
+
+```text
+----- FRAME 1: Checking Channel 1 -----
+Channel 1 sensor reading: 760
+Channel 1 threshold check: reading 760 > 700
+Channel 1 is DRY. Pump ON.
+Channel 1 watering... 0 second(s) elapsed
+Channel 1 watering... 1 second(s) elapsed
+Channel 1 watering... 2 second(s) elapsed
+Channel 1 watering... 3 second(s) elapsed
+Channel 1 watering... 4 second(s) elapsed
+Channel 1 pump timeout reached. Pump OFF.
+Moving to next channel.
+
+----- FRAME 2: Checking Channel 2 -----
+Channel 2 sensor reading: 610
+Channel 2 threshold check: reading 610 > 700
+Channel 2 moisture is OK. Pump stays OFF.
+Moving to next channel.
+
+----- FRAME 3: Checking Channel 3 -----
+Channel 3 sensor reading: 744
+Channel 3 threshold check: reading 744 > 700
+Channel 3 is DRY. Pump ON.
+Channel 3 watering... 0 second(s) elapsed
+Channel 3 watering... 1 second(s) elapsed
+Channel 3 watering... 2 second(s) elapsed
+Channel 3 watering... 3 second(s) elapsed
+Channel 3 watering... 4 second(s) elapsed
+Channel 3 pump timeout reached. Pump OFF.
+Moving to next channel.
+
+----- FRAME 4: Checking Channel 4 -----
+Channel 4 sensor reading: 390
+Channel 4 threshold check: reading 390 > 700
+Channel 4 moisture is OK. Pump stays OFF.
+Moving to next channel.
+```
+
+### How To Read These Messages
+
+- `FRAME 1`, `FRAME 2`, `FRAME 3`, `FRAME 4` show which channel is currently being processed.
+- `sensor reading` shows the raw analog value from that moisture sensor.
+- `threshold check` shows the exact test the code is using.
+- `is DRY. Pump ON.` means that channel crossed the watering threshold.
+- `moisture is OK. Pump stays OFF.` means no watering was needed.
+- `pump timeout reached. Pump OFF.` confirms the 5 second safety timeout worked.
 
 ## How To Test It Safely
 
@@ -353,6 +503,8 @@ Example:
 - a starting threshold could be `400`
 
 If watering starts too often, increase or decrease the threshold depending on how your sensor behaves.
+
+With the current sketch set to `700`, that suggests your own testing likely showed drier readings are higher. If your real wet and dry readings are much lower than that, reduce the threshold.
 
 ## Common Problems And Fixes
 
@@ -410,6 +562,10 @@ Check:
 - [Images/Sensor.jpg](Images/Sensor.jpg) is the moisture sensor photo.
 - [Images/Submersible-Pump.jpg](Images/Submersible-Pump.jpg) is the pump photo.
 - [Images/Circuit.jpg](Images/Circuit.jpg) is the circuit photo.
+- [Images/Interface.jpg](Images/Interface.jpg) shows the Arduino IDE workspace.
+- [Images/Select-Board.png](Images/Select-Board.png) shows where to click to choose the board.
+- [Images/Port.png](Images/Port.png) shows the Arduino Uno and COM3 selection example.
+- [Images/Serial-Monitor.png](Images/Serial-Monitor.png) shows how to open the Serial Monitor.
 
 ## Summary
 
