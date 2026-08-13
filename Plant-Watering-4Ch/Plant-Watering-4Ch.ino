@@ -23,7 +23,6 @@
 const int moistureThreshold = 700;
 const unsigned long pumpRunTimeMs = 5000;
 const unsigned long gapBetweenFramesMs = 1000;
-const unsigned long sensorCheckIntervalMs = 500;
 const float pumpFlowRateMlPerSecond = 10.303;
 const byte numberOfChannels = 4;
 const unsigned long millisecondsPerDay = 86400000UL;
@@ -67,6 +66,7 @@ bool dailyHistoryStorageFull = false;
 void checkForNewDay();
 void printUsageStatistics();
 void printDayUsage(unsigned long dayNumber, const float usageMl[]);
+void turnAllPumpsOff();
 
 void setup()
 {
@@ -79,10 +79,7 @@ void setup()
   pinMode(relayPin4, OUTPUT);
 
   // Make sure all pumps are OFF when the board starts.
-  digitalWrite(relayPin1, RELAY_OFF);
-  digitalWrite(relayPin2, RELAY_OFF);
-  digitalWrite(relayPin3, RELAY_OFF);
-  digitalWrite(relayPin4, RELAY_OFF);
+  turnAllPumpsOff();
 
   Serial.println("========================================");
   Serial.println("4-Channel Plant Watering System Starting");
@@ -144,6 +141,9 @@ void loop()
 
 void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin, byte channelIndex)
 {
+  // This prevents any previously selected relay from staying on.
+  turnAllPumpsOff();
+
   int sensorValue = analogRead(sensorPin);
 
   Serial.print("Channel ");
@@ -165,45 +165,33 @@ void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin, byte c
   {
     Serial.print("Channel ");
     Serial.print(channelNumber);
-    Serial.println(" is DRY. Pump ON.");
+    Serial.println(" is DRY. Pump ON for 5 seconds.");
 
     digitalWrite(relayPin, RELAY_ON);
 
     unsigned long pumpStartTime = millis();
-    bool thresholdReached = false;
 
-    // Keep checking the same sensor while its pump runs. The pump stops as
-    // soon as the soil reaches the threshold, or after the safety timeout.
+    // Keep this selected pump on for the complete 5-second watering cycle.
+    // The sensor is not checked again until the next visit to this channel.
     while (millis() - pumpStartTime < pumpRunTimeMs)
     {
-      unsigned long elapsedBeforeWaitMs = millis() - pumpStartTime;
-      unsigned long remainingPumpTimeMs = pumpRunTimeMs - elapsedBeforeWaitMs;
-      unsigned long waitTimeMs = sensorCheckIntervalMs;
+      unsigned long elapsedMs = millis() - pumpStartTime;
+      unsigned long remainingPumpTimeMs = pumpRunTimeMs - elapsedMs;
+      unsigned long waitTimeMs = 1000;
 
-      // Do not let the final sensor check extend the maximum pump timeout.
+      // Do not let the final status delay extend the 5-second run time.
       if (waitTimeMs > remainingPumpTimeMs)
       {
         waitTimeMs = remainingPumpTimeMs;
       }
 
-      delay(waitTimeMs);
-
-      int currentSensorValue = analogRead(sensorPin);
-      unsigned long elapsedMs = millis() - pumpStartTime;
-
       Serial.print("Channel ");
       Serial.print(channelNumber);
-      Serial.print(" watering... sensor reading: ");
-      Serial.print(currentSensorValue);
-      Serial.print(", elapsed: ");
+      Serial.print(" watering... elapsed: ");
       Serial.print(elapsedMs);
       Serial.println(" ms");
 
-      if (currentSensorValue <= moistureThreshold)
-      {
-        thresholdReached = true;
-        break;
-      }
+      delay(waitTimeMs);
     }
 
     digitalWrite(relayPin, RELAY_OFF);
@@ -224,18 +212,9 @@ void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin, byte c
     Serial.print(waterUsedMl, 2);
     Serial.println(" mL");
 
-    if (thresholdReached)
-    {
-      Serial.print("Channel ");
-      Serial.print(channelNumber);
-      Serial.println(" reached the moisture threshold. Pump OFF.");
-    }
-    else
-    {
-      Serial.print("Channel ");
-      Serial.print(channelNumber);
-      Serial.println(" pump timeout reached. Pump OFF.");
-    }
+    Serial.print("Channel ");
+    Serial.print(channelNumber);
+    Serial.println(" completed its 5 second watering cycle. Pump OFF.");
 
     printUsageStatistics();
     Serial.println("Moving to next channel.");
@@ -247,6 +226,14 @@ void checkAndWaterChannel(int channelNumber, int sensorPin, int relayPin, byte c
     Serial.println(" moisture is OK. Pump stays OFF.");
     Serial.println("Moving to next channel.");
   }
+}
+
+void turnAllPumpsOff()
+{
+  digitalWrite(relayPin1, RELAY_OFF);
+  digitalWrite(relayPin2, RELAY_OFF);
+  digitalWrite(relayPin3, RELAY_OFF);
+  digitalWrite(relayPin4, RELAY_OFF);
 }
 
 void checkForNewDay()

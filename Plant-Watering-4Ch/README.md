@@ -52,7 +52,7 @@ The program works in a repeating 4-step loop:
 3. Check sensor 3 and decide if pump 3 should run.
 4. Check sensor 4 and decide if pump 4 should run.
 
-If a channel is dry, its pump turns on for up to 5 seconds, then turns off and the program moves to the next channel.
+If a channel is dry, its pump turns on for a full 5 seconds, then turns off and the program moves to the next channel after a 1-second delay.
 
 If a channel is already wet enough, its pump stays off and the program immediately moves on.
 
@@ -204,7 +204,6 @@ These values are near the top of the file:
 const int moistureThreshold = 700;
 const unsigned long pumpRunTimeMs = 5000;
 const unsigned long gapBetweenFramesMs = 1000;
-const unsigned long sensorCheckIntervalMs = 500;
 const float pumpFlowRateMlPerSecond = 10.303;
 ```
 
@@ -213,16 +212,14 @@ These are the main user settings you are expected to change when tuning the proj
 | Setting | Current Value | What It Does | When To Change It |
 |---|---:|---|---|
 | `moistureThreshold` | `700` | Decides when the code treats the soil as dry | Change it when your sensor readings do not match real wet/dry conditions |
-| `pumpRunTimeMs` | `5000` | Sets the maximum pump run time in milliseconds | Change it if 5 seconds is too short or too long for your test setup |
+| `pumpRunTimeMs` | `5000` | Sets the fixed run time for each dry plant in milliseconds | Change it if 5 seconds is too short or too long for your plants |
 | `gapBetweenFramesMs` | `1000` | Waits 1 second before moving to the next channel | Change it if you want faster or slower cycling between channels |
-| `sensorCheckIntervalMs` | `500` | Reads the active soil sensor every 0.5 seconds while its pump runs | Make it smaller for a faster threshold response, or larger for fewer readings |
 | `pumpFlowRateMlPerSecond` | `10.303` | Converts measured pump run time into millilitres used | Recalculate it if you change the pump, tube length, power supply, or water head |
 
 What they mean in simple terms:
 - `moistureThreshold`: the dryness trigger point
-- `pumpRunTimeMs`: how long the pump is allowed to run before timing out
+- `pumpRunTimeMs`: how long each dry plant's pump runs
 - `gapBetweenFramesMs`: the pause between one channel and the next
-- `sensorCheckIntervalMs`: how often the active sensor is checked during watering
 - `pumpFlowRateMlPerSecond`: how much water the pump delivers each second
 
 ### User Settings Explained For Beginners
@@ -257,7 +254,7 @@ Useful examples:
 - `5000` = 5 seconds
 - `10000` = 10 seconds
 
-This setting is a safety limit. Even if a sensor keeps saying the soil is dry, the pump will stop after this time and the code will move to the next channel.
+This is a fixed watering time. When a plant is dry, its pump runs for this complete time, then turns off. The code waits 1 second and moves to the next channel.
 
 #### `gapBetweenFramesMs`
 
@@ -269,12 +266,6 @@ With the current setting:
 - then channel 2 runs or is checked
 
 This small gap helps keep the output readable and slightly spaces out the relay activity.
-
-#### `sensorCheckIntervalMs`
-
-While a pump is running, the code reads that same channel's sensor every `500` milliseconds.
-
-If the moisture reaches the threshold during one of these checks, the pump is switched off early. This means a plant only receives water until it is wet enough, instead of always receiving the full 5-second maximum.
 
 #### `pumpFlowRateMlPerSecond`
 
@@ -464,15 +455,17 @@ Only one pump is allowed to run at a time.
 ----- FRAME 1: Checking Channel 1 -----
 Channel 1 sensor reading: 823
 Channel 1 threshold check: reading 823 > 700
-Channel 1 is DRY. Pump ON.
-Channel 1 watering... sensor reading: 790, elapsed: 500 ms
-Channel 1 watering... sensor reading: 745, elapsed: 1000 ms
-Channel 1 watering... sensor reading: 695, elapsed: 1500 ms
-Channel 1 pump run time: 1500 ms
-Channel 1 water used this run: 15.45 mL
-Channel 1 reached the moisture threshold. Pump OFF.
+Channel 1 is DRY. Pump ON for 5 seconds.
+Channel 1 watering... elapsed: 0 ms
+Channel 1 watering... elapsed: 1000 ms
+Channel 1 watering... elapsed: 2000 ms
+Channel 1 watering... elapsed: 3000 ms
+Channel 1 watering... elapsed: 4000 ms
+Channel 1 pump run time: 5000 ms
+Channel 1 water used this run: 51.52 mL
+Channel 1 completed its 5 second watering cycle. Pump OFF.
 ---------- WATER USAGE STATISTICS ----------
-Day 1: Plant 1 = 15.45 mL; Plant 2 = 0.00 mL; Plant 3 = 0.00 mL; Plant 4 = 0.00 mL; Total = 15.45 mL
+Day 1: Plant 1 = 51.52 mL; Plant 2 = 0.00 mL; Plant 3 = 0.00 mL; Plant 4 = 0.00 mL; Total = 51.52 mL
 --------------------------------------------
 Moving to next channel.
 ```
@@ -516,7 +509,7 @@ On day 3, the report lists days 1, 2, and 3. The sketch has no configured maximu
 - `threshold check` shows the exact test the code is using.
 - `is DRY. Pump ON.` means that channel crossed the watering threshold.
 - `moisture is OK. Pump stays OFF.` means no watering was needed.
-- `pump run time` is the actual time that pump was on, not always the full 5 seconds.
+- `pump run time` is the full fixed watering time for that dry channel.
 - `water used this run` is calculated from the pump run time and the measured flow rate.
 - `WATER USAGE STATISTICS` shows the water used by each plant and the total for each stored day.
 - `pump timeout reached. Pump OFF.` confirms the 5 second safety timeout worked.
@@ -560,7 +553,7 @@ This confirms the Arduino-to-relay side is working.
 
 Connect one pump first.
 
-Make sure it runs only when the correct channel is dry, stops when the sensor reaches the threshold, or stops after no more than 5 seconds.
+Make sure the correct pump runs only when its channel is dry, remains on for the full 5 seconds, turns off, then waits 1 second before the next channel is checked.
 
 Then connect the remaining pumps.
 
@@ -656,8 +649,8 @@ The main ideas are:
 - 4 pumps
 - one channel checked at a time
 - one pump allowed at a time
-- moisture checked every 500 ms while watering
-- pump stops at the moisture threshold or after the 5 second safety timeout
+- every dry plant receives a full 5-second pump cycle
+- 1-second delay between channels
 - water use estimated in mL for every pump run
 - growing per-plant daily usage statistics with no configured day limit
 
