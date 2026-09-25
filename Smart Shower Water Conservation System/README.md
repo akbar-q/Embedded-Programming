@@ -279,6 +279,72 @@ where:
 
 This formula is a demonstration metric. Once a flow sensor is installed, replace the demand component with measured litres used relative to a target volume. Present both baseline and atomiser-assisted readings to show the atomiser's contribution honestly.
 
+## Detailed Conservation Algorithm Flowchart
+
+This flowchart shows the controller's complete decision cycle. The values used for time, demand, and restriction are configurable for a short competition demonstration.
+
+```mermaid
+flowchart TD
+  PowerOn([Power on]) --> Initialise[Initialise ESP32-C3\nLED ring, timer, inputs and servo]
+  Initialise --> ServoHome[Move servo to calibrated\nnormal-flow position]
+  ServoHome --> Ready[Show white READY display\nSet time, score and pause count to zero]
+  Ready --> StartCheck{Start button\npressed?}
+  StartCheck -- No --> Ready
+  StartCheck -- Yes --> StartSession[Start session timer\nSet score to 100\nShow green countdown]
+
+  StartSession --> ReadInputs[Read hot and cold\npotentiometer positions\nRead optional sensor inputs]
+  ReadInputs --> InputValid{Are readings within\nvalid calibrated range?}
+  InputValid -- No --> Fault[Show alternating red and white\nStop timer\nMove servo to documented safe position]
+  Fault --> ResetFault{Reset button\npressed after check?}
+  ResetFault -- No --> Fault
+  ResetFault -- Yes --> Ready
+
+  InputValid -- Yes --> Calculate[Calculate average demand\nUpdate elapsed and remaining time\nUpdate estimated water-use score]
+  Calculate --> StopCheck{Stop or reset\nbutton pressed?}
+  StopCheck -- Yes --> Complete[Stop timer\nReturn servo to normal position\nShow white completion state\nDisplay final score]
+  Complete --> Ready
+  StopCheck -- No --> PauseCheck{Pause mode selected\nor pause reminder due?}
+
+  PauseCheck -- Yes --> PausePrompt[Show blue pause prompt\nAsk user to soap or shampoo\nKeep current restriction level]
+  PausePrompt --> PauseResponse{User acknowledges pause\nor controls are reduced?}
+  PauseResponse -- Yes --> PauseCredit[Record pause event\nAdd conservation score credit\nShow blue countdown briefly]
+  PauseCredit --> ReadInputs
+  PauseResponse -- No --> DemandCheck
+  PauseCheck -- No --> DemandCheck{High demand sustained\nfor configured interval?}
+
+  DemandCheck -- Yes --> HighDemand[Show amber warning\nReduce conservation score]
+  HighDemand --> TimeCheck
+  DemandCheck -- No --> TimeCheck{Elapsed time below\ncaution threshold?}
+
+  TimeCheck -- Yes --> Efficient[Show green remaining-time arc\nServo remains at normal position]
+  Efficient --> LoopDelay[Wait short control interval]
+  LoopDelay --> ReadInputs
+
+  TimeCheck -- No --> WarningCheck{Elapsed time below\nmaximum time budget?}
+  WarningCheck -- Yes --> Warning[Show orange warning\nDisplay pause reminder\nSet gentle restriction target]
+  Warning --> RestrictionMove[Move servo toward target\nin small calibrated steps]
+  RestrictionMove --> UpdateDisplay[Update LED ring\nremaining time and score]
+  UpdateDisplay --> LoopDelay
+
+  WarningCheck -- No --> Limit[Show red conservation-limit state\nApply maximum permitted restriction\nReduce score]
+  Limit --> MaximumCheck{Maximum session time\nreached?}
+  MaximumCheck -- No --> RestrictionMove
+  MaximumCheck -- Yes --> Complete
+
+  classDef start fill:#DDEEFF,stroke:#3567A8,color:#102F54;
+  classDef process fill:#E9E2FF,stroke:#6C50A5,color:#261440;
+  classDef good fill:#DDF3E4,stroke:#347A4B,color:#173E25;
+  classDef warn fill:#FFE7B8,stroke:#B96B00,color:#553200;
+  classDef limit fill:#FFD6D6,stroke:#B43A3A,color:#5A1010;
+  class PowerOn,Ready,StartSession start;
+  class Initialise,ServoHome,ReadInputs,Calculate,LoopDelay,RestrictionMove,UpdateDisplay,PauseCredit,Complete process;
+  class Efficient good;
+  class PausePrompt,HighDemand,Warning warn;
+  class Fault,Limit limit;
+```
+
+The loop repeats frequently while a session is active. It does not jump straight from green to full restriction: it warns first, gives the user a chance to pause or reduce demand, and then moves the servo in small steps when the configured budget is exceeded.
+
 ## Control-State Outline
 
 ```mermaid
