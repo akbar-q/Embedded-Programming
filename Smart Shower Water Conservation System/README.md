@@ -20,26 +20,26 @@ flowchart LR
     Hot[Hot control\npotentiometer]
     Cold[Cold control\npotentiometer]
     Start[Start / pause\nbutton]
-    C3[ESP32-C3\ncontroller]
+    ESP32[ESP32 WROOM-32D\ncontroller]
     Ring[WS2812 LED ring\nclock and status]
     FlowServo[Servo 1\nflow restriction model]
     TempServo[Servo 2 optional\ntemperature model]
     Sensor[Optional common\nsensor inputs]
   end
 
-  Hot --> C3
-  Cold --> C3
-  Start --> C3
-  Sensor --> C3
-  C3 --> Ring
-  C3 --> FlowServo
-  C3 --> TempServo
+  Hot --> ESP32
+  Cold --> ESP32
+  Start --> ESP32
+  Sensor --> ESP32
+  ESP32 --> Ring
+  ESP32 --> FlowServo
+  ESP32 --> TempServo
 
   classDef input fill:#DDEEFF,stroke:#3567A8,color:#102F54;
   classDef control fill:#E9E2FF,stroke:#6C50A5,color:#261440;
   classDef output fill:#DDF3E4,stroke:#347A4B,color:#173E25;
   class Hot,Cold,Start,Sensor input;
-  class C3 control;
+  class ESP32 control;
   class Ring,FlowServo,TempServo output;
 ```
 
@@ -83,7 +83,7 @@ Long showers and leaving water running during non-rinsing activities waste treat
 
 | Item | Quantity | Role |
 |---|---:|---|
-| ESP32-C3 development board | 1 | Reads inputs, runs the conservation algorithm, controls the LEDs and servo. |
+| ESP32 WROOM-32D development board | 1 | Reads inputs, runs the conservation algorithm, controls the LEDs and servo. |
 | 10 kOhm linear potentiometer | 2 | Represents hot- and cold-tap openings. |
 | WS2812B LED ring, 16 or 24 LEDs | 1 | Countdown clock and colour status display. |
 | Momentary push button | 1-2 | Optional start/reset and pause/acknowledge controls. |
@@ -107,7 +107,7 @@ Long showers and leaving water running during non-rinsing activities waste treat
 - $330\,\Omega$ resistor in series with the WS2812 data line.
 - $1000\,\mu\mathrm{F}$ capacitor across the LED ring power input.
 - Logic-level shifter for the WS2812 data line when a $3.3\,\mathrm{V}$ ESP32 signal is unreliable.
-- A voltage divider or logic-level shifter for a flow sensor with a $5\,\mathrm{V}$ pulse output; ESP32-C3 GPIO pins are not $5\,\mathrm{V}$ tolerant.
+- A voltage divider or logic-level shifter for a flow sensor with a $5\,\mathrm{V}$ pulse output; ESP32 GPIO pins are not $5\,\mathrm{V}$ tolerant.
 - Suitable fuse, switch, waterproof enclosure, strain relief, and insulated connectors.
 
 ### Simple Sensor Set
@@ -127,7 +127,7 @@ Install the single flow sensor after the hot and cold streams have mixed, or at 
 
 ```mermaid
 flowchart TD
-  Inputs[User inputs\nand simple sensors] --> Read[ESP32-C3 reads\ncontrols and timer]
+  Inputs[User inputs\nand simple sensors] --> Read[ESP32 WROOM-32D reads\ncontrols and timer]
   Read --> Budget[Calculate water and\nenergy budget status]
   Budget --> Display[Update LED-ring\ncolour and countdown]
   Budget --> Decision{Budget exceeded?}
@@ -147,21 +147,21 @@ flowchart TD
 
 The potentiometers are interface inputs for the competition prototype; they do not directly open household valves. The controller uses timer-based thresholds and the simulated control positions to make the conservation decision.
 
-## Suggested ESP32-C3 Connections
+## Suggested ESP32 WROOM-32D Connections
 
-These assignments suit ESP32-C3 development boards that expose the listed GPIO pins. Confirm the pin labels on the selected board before wiring. Avoid using boot-strapping pins GPIO2, GPIO8, and GPIO9 for the sensors or outputs below.
+These assignments suit ESP32 WROOM-32D development boards that expose the listed GPIO pins. Confirm the pin labels on the selected board before wiring. Avoid boot-strapping pins GPIO0, GPIO2, GPIO12, and GPIO15, and do not use GPIO6 to GPIO11 because they are connected to the module flash memory.
 
 | Connection | Suggested ESP32 GPIO | Notes |
 |---|---:|---|
-| Hot potentiometer wiper | GPIO0 / ADC1_CH0 | Connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
-| Cold potentiometer wiper | GPIO1 / ADC1_CH1 | Connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
-| Flow-sensor pulse output | GPIO4 | Use an interrupt; level-shift the signal if the sensor output exceeds $3.3\,\mathrm{V}$. |
-| Leak-sensor analogue output, optional | GPIO3 / ADC1_CH3 | Ensure the module output cannot exceed $3.3\,\mathrm{V}$. |
-| WS2812 data input | GPIO7 | Add the series resistor close to the LED ring. |
-| Servo control signal | GPIO5 | Power the servo from its own adequate $5\,\mathrm{V}$ rail. |
-| Start/reset button | GPIO10 | Use an internal pull-up and wire the button to ground. |
+| Hot potentiometer wiper | GPIO34 / ADC1_CH6 | Input-only ADC pin; connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
+| Cold potentiometer wiper | GPIO35 / ADC1_CH7 | Input-only ADC pin; connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
+| Flow-sensor pulse output | GPIO27 | Use an interrupt; level-shift the signal if the sensor output exceeds $3.3\,\mathrm{V}$. |
+| Leak-sensor analogue output, optional | GPIO33 / ADC1_CH5 | Keep the module output at or below $3.3\,\mathrm{V}$. |
+| WS2812 data input | GPIO18 | Add the series resistor close to the LED ring. |
+| Servo control signal | GPIO25 | Power the servo from its own adequate $5\,\mathrm{V}$ rail. |
+| Start/reset button | GPIO32 | Use an internal pull-up and wire the button to ground. |
 
-The ESP32-C3 analogue inputs are GPIO0 to GPIO4. ESP32 ADC readings can vary between boards, so calibrate both potentiometers in software instead of assuming their raw end values.
+GPIO32 to GPIO35 are ADC1 inputs, so they remain usable while the ESP32 Wi-Fi is active. ESP32 ADC readings can vary between boards, so calibrate both potentiometers in software instead of assuming their raw end values.
 
 ## How It Works
 
@@ -179,7 +179,7 @@ $$
 
 where $H$ and $C$ are the calibrated hot and cold opening percentages. This gives a straightforward indication of how widely the controls are opened. It is not a measurement of litres per minute; pressure, valve geometry, and the atomiser also affect real flow.
 
-The inline flow sensor supplies pulses that the ESP32-C3 counts to calculate measured flow rate $F$:
+The inline flow sensor supplies pulses that the ESP32 counts to calculate measured flow rate $F$:
 
 $$
 V = \int_0^T F(t)\,dt
@@ -285,7 +285,7 @@ This flowchart shows the controller's complete decision cycle. The values used f
 
 ```mermaid
 flowchart TD
-  PowerOn([Power on]) --> Initialise[Initialise ESP32-C3\nLED ring, timer, inputs and servo]
+  PowerOn([Power on]) --> Initialise[Initialise ESP32 WROOM-32D\nLED ring, timer, inputs and servo]
   Initialise --> ServoHome[Move servo to calibrated\nnormal-flow position]
   ServoHome --> Ready[Show white READY display\nSet time, score and pause count to zero]
   Ready --> StartCheck{Start button\npressed?}
