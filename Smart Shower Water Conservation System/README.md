@@ -147,21 +147,38 @@ flowchart TD
 
 The potentiometers are interface inputs for the competition prototype; they do not directly open household valves. The controller uses timer-based thresholds and the simulated control positions to make the conservation decision.
 
-## Suggested ESP32 WROOM-32D Connections
+## ESP32 WROOM-32D Connections
 
-These assignments suit ESP32 WROOM-32D development boards that expose the listed GPIO pins. Confirm the pin labels on the selected board before wiring. Avoid boot-strapping pins GPIO0, GPIO2, GPIO12, and GPIO15, and do not use GPIO6 to GPIO11 because they are connected to the module flash memory.
+The table below records the current foam-board prototype wiring used by `SmartShowerWaterConservation.ino`.
 
-| Connection | Suggested ESP32 GPIO | Notes |
+| Connection | ESP32 GPIO | Notes |
 |---|---:|---|
-| Hot potentiometer wiper | GPIO34 / ADC1_CH6 | Input-only ADC pin; connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
-| Cold potentiometer wiper | GPIO35 / ADC1_CH7 | Input-only ADC pin; connect potentiometer ends to $3.3\,\mathrm{V}$ and ground only. |
-| Flow-sensor pulse output | GPIO27 | Use an interrupt; level-shift the signal if the sensor output exceeds $3.3\,\mathrm{V}$. |
-| Leak-sensor analogue output, optional | GPIO33 / ADC1_CH5 | Keep the module output at or below $3.3\,\mathrm{V}$. |
-| WS2812 data input | GPIO18 | Add the series resistor close to the LED ring. |
-| Servo control signal | GPIO25 | Power the servo from its own adequate $5\,\mathrm{V}$ rail. |
-| Start/reset button | GPIO32 | Use an internal pull-up and wire the button to ground. |
+| Hot potentiometer wiper | GPIO34 | ADC1 input. Connect the other potentiometer legs to $3.3\,\mathrm{V}$ and GND only. GPIO34 is input-only, which is suitable for this use. |
+| Cold potentiometer wiper | GPIO15 | ADC input. GPIO15 is a boot-strapping pin, so avoid adding circuitry that forces its level during reset. |
+| Servo signal, physical hot-side gauge | GPIO33 | PWM-capable output. This gauge is mapped to regulated cold flow in the current physical mounting. |
+| Servo signal, physical cold-side gauge | GPIO25 | PWM-capable output. This gauge is mapped to regulated hot flow in the current physical mounting. |
+| Temperature 8-LED WS2812 strip | GPIO18 | Add a $330\,\Omega$ resistor in the data line. The bar indicates simulated mixed-water temperature. |
+| Prompt 8-LED WS2812 ring | GPIO17 | Add a $330\,\Omega$ resistor in the data line. |
+| Shower visualisation LED 1 | GPIO27 | General-purpose digital output. |
+| Shower visualisation LED 2 | GPIO14 | General-purpose digital output. |
+| Shower visualisation LED 3 | GPIO12 | Boot-strapping pin; the LED circuit must not pull it high during reset. |
+| Reset button | GPIO22 | Configure button between the pin and GND; firmware uses `INPUT_PULLUP`. |
+| Force-conservation button | GPIO23 | Configure button between the pin and GND; firmware uses `INPUT_PULLUP`. |
 
-GPIO32 to GPIO35 are ADC1 inputs, so they remain usable while the ESP32 Wi-Fi is active. ESP32 ADC readings can vary between boards, so calibrate both potentiometers in software instead of assuming their raw end values.
+Power both servos from a stable external $5\,\mathrm{V}$ supply, not the ESP32 board. The external supply GND, ESP32 GND, LEDs, and potentiometers must share a common ground.
+
+### Current Firmware Calibration
+
+The current code uses the measured potentiometer endpoints below. The inverted direction is intentional: raw ADC values decrease as the corresponding tap is opened.
+
+| Control | Raw ADC closed endpoint | Raw ADC open endpoint | Firmware setting |
+|---|---:|---:|---|
+| Hot potentiometer | 3604 | 0 | `INVERT_HOT_POTENTIOMETER = true` |
+| Cold potentiometer | 3610 | 0 | `INVERT_COLD_POTENTIOMETER = true` |
+
+The firmware prints `Hot ADC` and `Cold ADC` at `115200` baud once per second. If the wiring or protective-resistor values change, measure both end values again and update the corresponding `*_POT_ADC_MINIMUM` and `*_POT_ADC_MAXIMUM` constants.
+
+The servo needles are calibrated from their zero marks toward $0^\circ$ at full regulated flow: the hot-side gauge uses $90^\circ \rightarrow 0^\circ$ and the cold-side gauge uses $100^\circ \rightarrow 0^\circ$. If a needle needs more visual travel, reposition its horn on the servo spline rather than commanding a negative angle.
 
 ## How It Works
 
@@ -458,7 +475,7 @@ Smart Shower Water Conservation System/
 
 ## Status
 
-**Concept and documentation stage.** The system design is ready to be prototyped. The next technical milestone is an ESP32 bench test that reads both potentiometers, drives the WS2812 ring, and operates the servo only within a dry, mechanically safe test setup.
+**Working foam-board prototype.** The ESP32 firmware reads both calibrated potentiometers, drives the two gauge servos, runs the WS2812 temperature and prompt displays, animates the shower LEDs, and applies a timed simulated conservation limit. Continue servo calibration only in a dry, mechanically safe setup.
 
 ## License
 
