@@ -4,6 +4,12 @@
 // Set to "motor_reference" to inspect the measured compound motor envelope.
 view_mode = "skeleton";
 
+// IMechE External Pipe Climber brief: commercial 22 mm copper pipe.
+// A 2 mm undersize wheel gap preloads the tyres against the pipe for grip.
+pipe_outer_diameter = 22;
+wheel_gap_undersize = 2;
+target_wheel_gap = pipe_outer_diameter - wheel_gap_undersize;
+
 frame_thickness = 5;
 
 // Central body.

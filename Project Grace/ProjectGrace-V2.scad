@@ -1,0 +1,324 @@
+// Project Grace V2 - printed skeleton with an underside MG90S servo cradle.
+// Dimensions are in millimetres. ProjectGrace.scad remains the preserved V1.
+
+// Set to "motor_reference" or "servo_reference" to inspect component envelopes.
+view_mode = "skeleton";
+
+// IMechE External Pipe Climber brief: commercial 22 mm copper pipe.
+// A 2 mm undersize wheel gap preloads the tyres against the pipe for grip.
+pipe_outer_diameter = 22;
+wheel_gap_undersize = 2;
+target_wheel_gap = pipe_outer_diameter - wheel_gap_undersize;
+
+frame_thickness = 5;
+
+// Central body.
+center_width = 30;
+center_height = 58;
+center_opening_size = 14;
+triangle_opening_width = 11;
+triangle_opening_height = 10;
+
+// Four identical arms and their solid motor-mount pads.
+arm_length = 92;
+arm_width = 19;
+arm_slot_width = 9;
+arm_slot_start = 13;
+arm_slot_end_clearance = 7;
+end_pad_length = 32;
+end_pad_width = 36;
+arm_angle = 72;
+
+// Measured N20-style micro metal gearmotor envelope from the supplied photos.
+// The total length includes the output shaft; the individual can and gearbox lengths are estimates.
+motor_overall_length = 46.05;
+motor_width = 15.23;
+motor_thickness = 11.82;
+motor_can_length = 22;
+gearbox_length = 16;
+output_shaft_length = motor_overall_length - motor_can_length - gearbox_length;
+output_shaft_diameter = 3;
+
+// Integrated holder dimensions. The motor sits directly on the frame surface.
+motor_fit_clearance = 0.6;
+holder_wall_thickness = 1.5;
+holder_wall_height = 9;
+holder_back_stop_thickness = 2;
+holder_length = motor_can_length + gearbox_length + 2;
+wire_exit_width = 7;
+wire_exit_height = 6;
+cable_tie_slot_width = 2.5;
+cable_tie_slot_length = 4;
+cable_tie_slot_positions = [10, 30];
+cable_tie_slot_y = 10;
+
+// MG90S micro-servo dimensions. Verify the tab-hole spacing on the supplied servo.
+servo_body_length = 22.8;
+servo_body_width = 12.2;
+servo_body_height = 28.5;
+servo_fit_clearance = 0.5;
+servo_ear_length = 32.4;
+servo_ear_width = 12.2;
+servo_ear_thickness = 2.5;
+servo_ear_height_from_spline = 19;
+servo_mount_hole_diameter = 2.2;
+servo_mount_hole_spacing = 27.4;
+servo_cradle_wall_thickness = 2;
+servo_cradle_wall_height = 10;
+servo_cradle_floor_thickness = 2;
+servo_spline_diameter = 4.9;
+servo_spline_projection = 4;
+servo_spline_x_offset = 7;
+servo_cradle_center_x = -31;
+servo_cradle_mount_z = servo_cradle_floor_thickness;
+servo_inner_bracket_hole_diameter = 3.2;
+servo_inner_bracket_hole_positions = [-10, 0, 10];
+
+module arm_with_pad(root_x, root_y, angle) {
+    arm_slot_length = arm_length - end_pad_length - arm_slot_start - arm_slot_end_clearance;
+
+    translate([root_x, root_y, 0])
+        rotate([0, 0, angle])
+            difference() {
+                union() {
+                    translate([0, -arm_width / 2, 0])
+                        cube([arm_length, arm_width, frame_thickness]);
+                    translate([arm_length - end_pad_length, -end_pad_width / 2, 0])
+                        cube([end_pad_length, end_pad_width, frame_thickness]);
+                }
+
+                // Long lightening slot, matching the reference skeleton.
+                translate([arm_slot_start, -arm_slot_width / 2, -1])
+                    cube([arm_slot_length, arm_slot_width, frame_thickness + 2]);
+            }
+}
+
+module triangular_opening(y_position, points_up) {
+    translate([0, y_position, -1])
+        linear_extrude(height = frame_thickness + 2)
+            if (points_up)
+                polygon(points = [
+                    [-triangle_opening_width / 2, -triangle_opening_height / 2],
+                    [triangle_opening_width / 2, -triangle_opening_height / 2],
+                    [0, triangle_opening_height / 2]
+                ]);
+            else
+                polygon(points = [
+                    [-triangle_opening_width / 2, triangle_opening_height / 2],
+                    [triangle_opening_width / 2, triangle_opening_height / 2],
+                    [0, -triangle_opening_height / 2]
+                ]);
+}
+
+module center_body() {
+    difference() {
+        linear_extrude(height = frame_thickness)
+            polygon(points = [
+                [-center_width / 2, -center_height / 2],
+                [center_width / 2, -center_height / 2],
+                [center_width / 2, -center_height / 2 + 14],
+                [center_width / 2 + 6, -8],
+                [center_width / 2 + 6, 8],
+                [center_width / 2, center_height / 2 - 14],
+                [center_width / 2, center_height / 2],
+                [-center_width / 2, center_height / 2],
+                [-center_width / 2, center_height / 2 - 14],
+                [-center_width / 2 - 6, 8],
+                [-center_width / 2 - 6, -8],
+                [-center_width / 2, -center_height / 2 + 14]
+            ]);
+
+        translate([-center_opening_size / 2, -center_opening_size / 2, -1])
+            cube([center_opening_size, center_opening_size, frame_thickness + 2]);
+        triangular_opening(center_opening_size / 2 + triangle_opening_height, true);
+        triangular_opening(-center_opening_size / 2 - triangle_opening_height, false);
+    }
+}
+
+module motor_holder() {
+    holder_outer_width = motor_width + motor_fit_clearance + 2 * holder_wall_thickness;
+
+    union() {
+        // Rear stop prevents the motor moving towards the centre of the frame.
+        difference() {
+            translate([0, -holder_outer_width / 2, 0])
+                cube([holder_back_stop_thickness, holder_outer_width, holder_wall_height]);
+            translate([
+                -1,
+                -wire_exit_width / 2,
+                (holder_wall_height - wire_exit_height) / 2
+            ])
+                cube([holder_back_stop_thickness + 2, wire_exit_width, wire_exit_height]);
+        }
+
+        // Low rails locate the compound motor without interfering with its gearbox or shaft.
+        translate([0, -holder_outer_width / 2, 0])
+            cube([holder_length, holder_wall_thickness, holder_wall_height]);
+        translate([0, holder_outer_width / 2 - holder_wall_thickness, 0])
+            cube([holder_length, holder_wall_thickness, holder_wall_height]);
+    }
+}
+
+module motor_holder_tie_slots() {
+    // Two tie stations prevent the motor rotating in its holder under drive torque.
+    for (tie_x = cable_tie_slot_positions)
+        for (side = [-1, 1])
+            translate([
+                tie_x - cable_tie_slot_length / 2,
+                side * cable_tie_slot_y - cable_tie_slot_width / 2,
+                -1
+            ])
+                cube([cable_tie_slot_length, cable_tie_slot_width, frame_thickness + 2]);
+}
+
+module holder_on_arm(root_x, root_y, angle) {
+    translate([root_x, root_y, frame_thickness])
+        rotate([0, 0, angle])
+            translate([arm_length - holder_length, 0, 0])
+                motor_holder();
+}
+
+module holder_slots_on_arm(root_x, root_y, angle) {
+    translate([root_x, root_y, 0])
+        rotate([0, 0, angle])
+            translate([arm_length - holder_length, 0, 0])
+                motor_holder_tie_slots();
+}
+
+module servo_cradle() {
+    cradle_inner_length = servo_body_length + servo_fit_clearance;
+    cradle_inner_width = servo_body_width + servo_fit_clearance;
+    cradle_outer_length = cradle_inner_length + 2 * servo_cradle_wall_thickness;
+    cradle_outer_width = cradle_inner_width + 2 * servo_cradle_wall_thickness;
+    ear_hole_x = servo_mount_hole_spacing / 2;
+
+    // Side-mounted under-frame tray: the servo spline and ChainHookHorn face downward.
+    difference() {
+        union() {
+            // The wide plate carries the servo's two mounting ears.
+            translate([-servo_ear_length / 2, -servo_ear_width / 2, -servo_cradle_floor_thickness])
+                cube([servo_ear_length, servo_ear_width, servo_cradle_floor_thickness]);
+
+            // Low side rails locate the body in the cradle without covering its output end.
+            translate([
+                -cradle_outer_length / 2,
+                -cradle_outer_width / 2,
+                -servo_cradle_wall_height
+            ])
+                cube([
+                    cradle_outer_length,
+                    servo_cradle_wall_thickness,
+                    servo_cradle_wall_height
+                ]);
+            translate([
+                -cradle_outer_length / 2,
+                cradle_outer_width / 2 - servo_cradle_wall_thickness,
+                -servo_cradle_wall_height
+            ])
+                cube([
+                    cradle_outer_length,
+                    servo_cradle_wall_thickness,
+                    servo_cradle_wall_height
+                ]);
+
+            // Outer end stop keeps the servo located against drive vibration.
+            translate([
+                -cradle_outer_length / 2,
+                -cradle_outer_width / 2,
+                -servo_cradle_wall_height
+            ])
+                cube([
+                    servo_cradle_wall_thickness,
+                    cradle_outer_width,
+                    servo_cradle_wall_height
+                ]);
+        }
+
+        // Opening under the spline lets the servo horn and chain hook run freely.
+        translate([servo_spline_x_offset, 0, -servo_cradle_floor_thickness - 1])
+            cylinder(d = servo_spline_diameter + 2, h = servo_cradle_floor_thickness + 2, $fn = 48);
+
+        // M2 through-holes align with the MG90S mounting ears.
+        for (x_position = [-ear_hole_x, ear_hole_x])
+            translate([x_position, 0, -servo_cradle_floor_thickness - 1])
+                cylinder(d = servo_mount_hole_diameter, h = servo_cradle_floor_thickness + 2, $fn = 32);
+
+        // Three clearance holes sit in the inner bracket where shown in the concept sketch.
+        for (x_position = servo_inner_bracket_hole_positions)
+            translate([x_position, 0, -servo_cradle_floor_thickness - 1])
+                cylinder(
+                    d = servo_inner_bracket_hole_diameter,
+                    h = servo_cradle_floor_thickness + 2,
+                    $fn = 32
+                );
+    }
+}
+
+module printed_skeleton() {
+    difference() {
+        union() {
+            center_body();
+            arm_with_pad(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
+            arm_with_pad(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
+            arm_with_pad(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
+            arm_with_pad(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
+            holder_on_arm(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
+            holder_on_arm(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
+            holder_on_arm(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
+            holder_on_arm(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
+            // The floor overlaps the chassis by 2 mm, making the side cradle one printed part.
+            translate([servo_cradle_center_x, 0, servo_cradle_mount_z])
+                servo_cradle();
+        }
+
+        holder_slots_on_arm(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
+        holder_slots_on_arm(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
+        holder_slots_on_arm(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
+        holder_slots_on_arm(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
+    }
+}
+
+module compound_motor_reference() {
+    // Motor can, gearbox, and output shaft are separate volumes for mount design.
+    color("silver")
+        translate([0, -motor_width / 2, -motor_thickness / 2])
+            cube([motor_can_length, motor_width, motor_thickness]);
+
+    color("goldenrod")
+        translate([motor_can_length, -motor_width / 2, -motor_thickness / 2])
+            cube([gearbox_length, motor_width, motor_thickness]);
+
+    color("dimgray")
+        translate([motor_can_length + gearbox_length, 0, 0])
+            rotate([0, 90, 0])
+                cylinder(d = output_shaft_diameter, h = output_shaft_length);
+}
+
+module mg90s_reference() {
+    // Approximate orientation inside the side-mounted underside cradle.
+    color("royalblue")
+        translate([
+            servo_cradle_center_x - servo_body_length / 2,
+            -servo_body_width / 2,
+            servo_cradle_mount_z - servo_body_height
+        ])
+            cube([servo_body_length, servo_body_width, servo_body_height]);
+
+    color("dimgray")
+        translate([
+            servo_cradle_center_x + servo_spline_x_offset,
+            0,
+            servo_cradle_mount_z - servo_body_height - servo_spline_projection
+        ])
+            cylinder(d = servo_spline_diameter, h = servo_spline_projection, $fn = 48);
+}
+
+if (view_mode == "motor_reference")
+    compound_motor_reference();
+else if (view_mode == "servo_reference") {
+    color("orange")
+        printed_skeleton();
+    mg90s_reference();
+} else
+    color("orange")
+        printed_skeleton();
