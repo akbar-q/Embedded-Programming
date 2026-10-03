@@ -5,10 +5,10 @@
 view_mode = "skeleton";
 
 // IMechE External Pipe Climber brief: commercial 22 mm copper pipe.
-// The wheels flare 15 mm into the gap on each side, so a 40 mm hub spacing
-// leaves the required 10 mm clear gap between the tyre treads.
+// The wheels flare 15 mm into the gap on each side, so a 44 mm hub spacing
+// leaves the required 14 mm clear gap between the tyre treads.
 pipe_outer_diameter = 22;
-target_tread_gap = 10;
+target_tread_gap = 14;
 wheel_flare_per_side = 15;
 target_wheel_hub_spacing = target_tread_gap + 2 * wheel_flare_per_side;
 
@@ -16,14 +16,15 @@ frame_thickness = 6;
 
 // Central body.
 center_width = 30;
-center_height = 58;
+base_center_height = 58;
+center_height = 2 * base_center_height;
 center_wire_opening_width = 20;
 center_wire_opening_height = 10;
 
 // Four identical motor arms. Their roots are compliant accordion flexures.
 // Increase arm_extension to gain climbing stroke without changing the mount layout.
 base_arm_length = 92;
-arm_extension = 0;
+arm_extension = (center_height - base_center_height) / 2;
 arm_length = base_arm_length + arm_extension;
 arm_width = 20;
 arm_slot_width = 5;
@@ -37,11 +38,11 @@ arm_angle = acos((target_wheel_hub_spacing / 2 - arm_root_x) / arm_length);
 
 // Paired PETG accordion flexures are built into each arm and carry its radial load.
 // The thinner 3 mm section bends in-plane while the centre frame and motor pad remain rigid.
-arm_spring_length = 28;
+arm_spring_length = 28 + arm_extension;
 arm_spring_beam_width = 3.5;
 arm_spring_thickness = 5;
 arm_spring_amplitude = 2.5;
-arm_spring_cycles = 2;
+arm_spring_cycles = 4;
 arm_spring_pair_spacing = 10;
 arm_spring_overlap = 5;
 spring_gusset_length = 7;
@@ -52,7 +53,7 @@ spring_gusset_tip_diameter = 4;
 side_spring_beam_width = 3.2;
 side_spring_thickness = 5;
 side_spring_amplitude = 6;
-side_spring_folds = 4;
+side_spring_folds = 6;
 side_spring_pad_overlap = 5;
 side_spring_pad_embed = 3;
 include_side_accordion_springs = true;

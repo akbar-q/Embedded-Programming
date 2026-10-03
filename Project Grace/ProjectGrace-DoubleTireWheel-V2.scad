@@ -11,7 +11,7 @@ wheel_profile_width = 6.5;
 centre_ledge_width = 3.5;
 outer_land_width = (wheel_profile_width - centre_ledge_width) / 2;
 n_profile_width = wheel_profile_width;
-wheel_pair_gap = 3;
+wheel_pair_gap = 9;
 wheel_width = 2 * n_profile_width + wheel_pair_gap;
 core_diameter = outer_land_diameter;
 
