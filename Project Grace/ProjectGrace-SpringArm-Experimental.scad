@@ -5,53 +5,57 @@
 view_mode = "skeleton";
 
 // IMechE External Pipe Climber brief: commercial 22 mm copper pipe.
-// A 4 mm undersize wheel gap preloads the tyres against the pipe for inward grip.
+// The wheels flare 15 mm into the gap on each side, so a 40 mm hub spacing
+// leaves the required 10 mm clear gap between the tyre treads.
 pipe_outer_diameter = 22;
-wheel_gap_undersize = 4;
-target_wheel_gap = pipe_outer_diameter - wheel_gap_undersize;
+target_tread_gap = 10;
+wheel_flare_per_side = 15;
+target_wheel_hub_spacing = target_tread_gap + 2 * wheel_flare_per_side;
 
-frame_thickness = 5;
+frame_thickness = 6;
 
 // Central body.
 center_width = 30;
 center_height = 58;
-center_opening_size = 14;
-triangle_opening_width = 11;
-triangle_opening_height = 10;
+center_wire_opening_width = 20;
+center_wire_opening_height = 10;
 
 // Four identical motor arms. Their roots are compliant accordion flexures.
 // Increase arm_extension to gain climbing stroke without changing the mount layout.
 base_arm_length = 92;
 arm_extension = 0;
 arm_length = base_arm_length + arm_extension;
-arm_width = 16;
-arm_slot_width = 7;
+arm_width = 20;
+arm_slot_width = 5;
 arm_slot_start = 13;
 arm_slot_end_clearance = 7;
 end_pad_length = 32;
 end_pad_width = 36;
-arm_angle = 72;
+arm_root_x = center_width / 2 - 3;
+arm_root_y = center_height / 2 - 17;
+arm_angle = acos((target_wheel_hub_spacing / 2 - arm_root_x) / arm_length);
 
-// Paired PETG accordion flexures carry each arm's radial load.
+// Paired PETG accordion flexures are built into each arm and carry its radial load.
 // The thinner 3 mm section bends in-plane while the centre frame and motor pad remain rigid.
-arm_spring_length = 36;
-arm_spring_beam_width = 2.2;
-arm_spring_thickness = 3;
-arm_spring_amplitude = 3.5;
-arm_spring_cycles = 3;
-arm_spring_pair_spacing = 8;
-arm_spring_overlap = 3;
+arm_spring_length = 28;
+arm_spring_beam_width = 3.5;
+arm_spring_thickness = 5;
+arm_spring_amplitude = 2.5;
+arm_spring_cycles = 2;
+arm_spring_pair_spacing = 10;
+arm_spring_overlap = 5;
+spring_gusset_length = 7;
+spring_gusset_root_diameter = 8;
+spring_gusset_tip_diameter = 4;
 
-// Forward ToF boom. Angle 0 points between the two upper arms along the pipe.
-tof_boom_length = 110;
-tof_boom_width = 14;
-tof_boom_rail_width = 3;
-tof_boom_brace_length = 10;
-tof_boom_overlap = 3;
-tof_boom_angle = 0;
-tof_face_width = 18;
-tof_face_height = 12;
-tof_face_thickness = 2.5;
+// Built-in zig-zag tensioners join the upper and lower pads at each outer side.
+side_spring_beam_width = 3.2;
+side_spring_thickness = 5;
+side_spring_amplitude = 6;
+side_spring_folds = 4;
+side_spring_pad_overlap = 5;
+side_spring_pad_embed = 3;
+include_side_accordion_springs = true;
 
 // Measured N20-style micro metal gearmotor envelope from the supplied photos.
 // The total length includes the output shaft; the individual can and gearbox lengths are estimates.
@@ -65,32 +69,17 @@ output_shaft_diameter = 3;
 
 // Integrated holder dimensions. The motor sits directly on the frame surface.
 motor_fit_clearance = 0.6;
-holder_wall_thickness = 1.5;
-holder_wall_height = 9;
-holder_back_stop_thickness = 2;
+holder_wall_thickness = 3.5;
+holder_wall_height = 12;
+holder_back_stop_thickness = 3;
 holder_length = motor_can_length + gearbox_length + 2;
-wire_exit_width = 7;
-wire_exit_height = 6;
+wire_exit_slot_width = 4;
+wire_exit_height = 8;
+wire_exit_corner_offset = motor_width / 2 - wire_exit_slot_width / 2 - 0.5;
 cable_tie_slot_width = 2.5;
 cable_tie_slot_length = 4;
 cable_tie_slot_positions = [10, 30];
 cable_tie_slot_y = 10;
-motor_pad_rail_width = 4;
-motor_pad_brace_length = 5;
-motor_mount_bottom_slot_width = 6;
-motor_mount_bottom_slot_start_clearance = 4;
-motor_mount_bottom_slot_end_clearance = 4;
-holder_rail_segment_length = 7;
-holder_rail_segment_positions = [1, 17, 32];
-holder_back_stop_tab_width = 4;
-
-// Posts accept the separate tension-band eyelets. Locking caps are fitted after assembly.
-spring_anchor_post_diameter = 3;
-spring_anchor_post_height = 5;
-spring_anchor_base_diameter = 8;
-spring_anchor_position_x = 20;
-spring_anchor_lug_length = 10;
-spring_anchor_lug_extension = 6;
 
 // MG90S micro-servo dimensions. Verify the tab-hole spacing on the supplied servo.
 servo_body_length = 22.8;
@@ -119,15 +108,7 @@ module arm_with_pad(root_x, root_y, angle) {
     lightening_slot_start = max(arm_slot_start, rigid_arm_start + 4);
     arm_slot_length = arm_length - end_pad_length - lightening_slot_start - arm_slot_end_clearance;
     pad_start_x = arm_length - end_pad_length;
-    motor_mount_slot_start_x = arm_length - holder_length + motor_mount_bottom_slot_start_clearance;
-    motor_mount_slot_length = holder_length
-        - motor_mount_bottom_slot_start_clearance
-        - motor_mount_bottom_slot_end_clearance;
-    motor_pad_rail_center = (
-        motor_width + motor_fit_clearance + holder_wall_thickness
-    ) / 2;
-    spring_anchor_x = pad_start_x + spring_anchor_position_x;
-
+    holder_outer_width = motor_width + motor_fit_clearance + 2 * holder_wall_thickness;
     translate([root_x, root_y, 0])
         rotate([0, 0, angle])
             difference() {
@@ -150,72 +131,9 @@ module arm_with_pad(root_x, root_y, angle) {
                     ])
                         cube([arm_spring_overlap + 2, arm_width, frame_thickness]);
 
-                    // Two rails carry the motor holder; braces remain only where load is applied.
-                    for (side = [-1, 1])
-                        translate([
-                            pad_start_x,
-                            side * motor_pad_rail_center - motor_pad_rail_width / 2,
-                            0
-                        ])
-                            cube([end_pad_length, motor_pad_rail_width, frame_thickness]);
-
-                    translate([pad_start_x, -end_pad_width / 2, 0])
-                        cube([motor_pad_brace_length, end_pad_width, frame_thickness]);
-                    translate([
-                        arm_length - motor_pad_brace_length,
-                        -end_pad_width / 2,
-                        0
-                    ])
-                        cube([motor_pad_brace_length, end_pad_width, frame_thickness]);
-
-                    // Tie stations remain fully supported while the rest of the pad is open.
-                    for (tie_x = cable_tie_slot_positions)
-                        translate([
-                            pad_start_x + end_pad_length - holder_length + tie_x
-                                - motor_pad_brace_length / 2,
-                            -end_pad_width / 2,
-                            0
-                        ])
-                            cube([
-                                motor_pad_brace_length,
-                                end_pad_width,
-                                frame_thickness
-                            ]);
-
-                    // Matched outboard lugs keep both spring anchors clear of the motor cradle.
-                    for (side = [-1, 1]) {
-                        spring_anchor_y = side * (
-                            end_pad_width / 2 + spring_anchor_lug_extension / 2
-                        );
-                        translate([
-                            spring_anchor_x - spring_anchor_lug_length / 2,
-                            side < 0
-                                ? -end_pad_width / 2 - spring_anchor_lug_extension
-                                : end_pad_width / 2 - 2,
-                            0
-                        ])
-                            cube([
-                                spring_anchor_lug_length,
-                                spring_anchor_lug_extension + 2,
-                                frame_thickness
-                            ]);
-                        translate([spring_anchor_x, spring_anchor_y, 0])
-                            cylinder(
-                                d = spring_anchor_base_diameter,
-                                h = frame_thickness,
-                                $fn = 32
-                            );
-                        translate([
-                            spring_anchor_x,
-                            spring_anchor_y,
-                            frame_thickness - 1
-                        ])
-                            cylinder(
-                                d = spring_anchor_post_diameter,
-                                h = spring_anchor_post_height + 1,
-                                $fn = 32
-                            );
-                    }
+                    // Motor floor ends flush with the continuous holder walls.
+                    translate([pad_start_x, -holder_outer_width / 2, 0])
+                        cube([end_pad_length, holder_outer_width, frame_thickness]);
 
                 }
 
@@ -223,17 +141,6 @@ module arm_with_pad(root_x, root_y, angle) {
                 translate([lightening_slot_start, -arm_slot_width / 2, -1])
                     cube([arm_slot_length, arm_slot_width, frame_thickness + 2]);
 
-                // Open the underside between the motor support rails to reduce mount mass.
-                translate([
-                    motor_mount_slot_start_x,
-                    -motor_mount_bottom_slot_width / 2,
-                    -1
-                ])
-                    cube([
-                        motor_mount_slot_length,
-                        motor_mount_bottom_slot_width,
-                        frame_thickness + 2
-                    ]);
             }
 }
 
@@ -255,6 +162,7 @@ module triangular_opening(y_position, points_up) {
 }
 
 module center_body() {
+    // Solid, uninterrupted deck for electronics, battery, and cable routing.
     difference() {
         linear_extrude(height = frame_thickness)
             polygon(points = [
@@ -272,69 +180,48 @@ module center_body() {
                 [-center_width / 2, -center_height / 2 + 14]
             ]);
 
-        translate([-center_opening_size / 2, -center_opening_size / 2, -1])
-            cube([center_opening_size, center_opening_size, frame_thickness + 2]);
-        triangular_opening(center_opening_size / 2 + triangle_opening_height, true);
-        triangular_opening(-center_opening_size / 2 - triangle_opening_height, false);
-    }
-}
-
-module tof_sensor_boom() {
-    boom_start_y = center_height / 2 - tof_boom_overlap;
-    boom_end_y = boom_start_y + tof_boom_length;
-    face_z = frame_thickness - 2;
-
-    rotate([0, 0, tof_boom_angle])
-        union() {
-            // Two rails provide the reach while removing most of the boom weight.
-            for (side = [-1, 1])
-                translate([
-                    side * (tof_boom_width / 2 - tof_boom_rail_width),
-                    boom_start_y,
-                    0
-                ])
-                    cube([tof_boom_rail_width, tof_boom_length, frame_thickness]);
-
-            // Root and tip braces prevent the rails twisting under acceleration.
-            translate([-tof_boom_width / 2, boom_start_y, 0])
-                cube([tof_boom_width, tof_boom_brace_length, frame_thickness]);
-            translate([-tof_boom_width / 2, boom_end_y - tof_boom_brace_length, 0])
-                cube([tof_boom_width, tof_boom_brace_length, frame_thickness]);
-
-            // Compact flat pad for gluing the small ToF sensor board in place.
-            translate([-tof_face_width / 2, boom_end_y - tof_face_thickness, face_z])
-                cube([tof_face_width, tof_face_thickness, tof_face_height + 2]);
+        // Wide central pass-through routes the motor wires under the electronics.
+        hull() {
+            translate([
+                -(center_wire_opening_width - center_wire_opening_height) / 2,
+                0,
+                -1
+            ])
+                cylinder(d = center_wire_opening_height, h = frame_thickness + 2, $fn = 32);
+            translate([
+                (center_wire_opening_width - center_wire_opening_height) / 2,
+                0,
+                -1
+            ])
+                cylinder(d = center_wire_opening_height, h = frame_thickness + 2, $fn = 32);
         }
+    }
 }
 
 module motor_holder() {
     holder_outer_width = motor_width + motor_fit_clearance + 2 * holder_wall_thickness;
 
     union() {
-        // Two rear tabs prevent inward movement while leaving a clear wire exit.
-        for (tab_y = [
-            -holder_outer_width / 2,
-            holder_outer_width / 2 - holder_back_stop_tab_width
-        ])
-            translate([0, tab_y, 0])
-                cube([
-                    holder_back_stop_thickness,
-                    holder_back_stop_tab_width,
-                    holder_wall_height
-                ]);
-
-        // Short guide segments locate the motor without the mass of continuous walls.
-        for (rail_x = holder_rail_segment_positions)
-            for (rail_y = [
-                -holder_outer_width / 2,
-                holder_outer_width / 2 - holder_wall_thickness
-            ])
-                translate([rail_x, rail_y, 0])
+        // Continuous rear stop and side walls make a rigid U-shaped motor cradle.
+        difference() {
+            translate([0, -holder_outer_width / 2, 0])
+                cube([holder_back_stop_thickness, holder_outer_width, holder_wall_height]);
+            for (side = [-1, 1])
+                translate([
+                    -1,
+                    side * wire_exit_corner_offset - wire_exit_slot_width / 2,
+                    (holder_wall_height - wire_exit_height) / 2
+                ])
                     cube([
-                        holder_rail_segment_length,
-                        holder_wall_thickness,
-                        holder_wall_height
+                        holder_back_stop_thickness + 2,
+                        wire_exit_slot_width,
+                        wire_exit_height
                     ]);
+        }
+        translate([0, -holder_outer_width / 2, 0])
+            cube([holder_length, holder_wall_thickness, holder_wall_height]);
+        translate([0, holder_outer_width / 2 - holder_wall_thickness, 0])
+            cube([holder_length, holder_wall_thickness, holder_wall_height]);
     }
 }
 
@@ -390,11 +277,69 @@ module arm_accordion_beam(y_offset) {
         arm_spring_beam(points[index], points[index + 1]);
 }
 
+module spring_mount_gusset(x_position, y_offset, direction) {
+    // Flush tapered flare blends each flexure into its rigid attachment.
+    hull() {
+        translate([x_position, y_offset, 0])
+            cylinder(d = spring_gusset_root_diameter, h = frame_thickness, $fn = 32);
+        translate([
+            x_position + direction * spring_gusset_length,
+            y_offset,
+            0
+        ])
+            cylinder(d = spring_gusset_tip_diameter, h = frame_thickness, $fn = 32);
+    }
+}
+
 module accordion_arm_root(root_x, root_y, angle) {
     translate([root_x, root_y, 0])
-        rotate([0, 0, angle])
-            for (side = [-1, 1])
+        rotate([0, 0, angle]) {
+            for (side = [-1, 1]) {
+                y_offset = side * arm_spring_pair_spacing / 2;
+                spring_mount_gusset(-arm_spring_overlap, y_offset, 1);
+                spring_mount_gusset(
+                    arm_spring_length + arm_spring_overlap,
+                    y_offset,
+                    -1
+                );
                 arm_accordion_beam(side * arm_spring_pair_spacing / 2);
+            }
+        }
+}
+
+module side_spring_beam(point_a, point_b) {
+    hull() {
+        translate([point_a[0], point_a[1], 0])
+            cylinder(d = side_spring_beam_width, h = side_spring_thickness, $fn = 24);
+        translate([point_b[0], point_b[1], 0])
+            cylinder(d = side_spring_beam_width, h = side_spring_thickness, $fn = 24);
+    }
+}
+
+module side_accordion_spring(side) {
+    wheel_hub_y = arm_root_y + arm_length * sin(arm_angle);
+    attach_y = wheel_hub_y - side_spring_pad_overlap;
+    outer_pad_x = target_wheel_hub_spacing / 2
+        + end_pad_width / 2 * sin(arm_angle)
+        - side_spring_pad_embed;
+    spring_outer_x = side * outer_pad_x;
+    spring_inner_x = side * (outer_pad_x - side_spring_amplitude);
+    point_count = 2 * side_spring_folds + 1;
+    spring_pitch = 2 * attach_y / (point_count + 1);
+    points = concat(
+        [[spring_inner_x, -attach_y]],
+        [for (index = [1 : point_count])
+            [
+                index % 2 == 1 ? spring_outer_x : spring_inner_x,
+                -attach_y + index * spring_pitch
+            ]
+        ],
+        [[spring_inner_x, attach_y]]
+    );
+
+    // Continuous diagonal turns give the tensioner the coil-like flex shown in the sketch.
+    for (index = [0 : len(points) - 2])
+        side_spring_beam(points[index], points[index + 1]);
 }
 
 module servo_cradle() {
@@ -466,32 +411,32 @@ module servo_cradle() {
     }
 }
 
-module printed_skeleton() {
+module printed_skeleton(include_servo_cradle = true) {
     difference() {
         union() {
             center_body();
-            arm_with_pad(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
-            arm_with_pad(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
-            arm_with_pad(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
-            arm_with_pad(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
-            holder_on_arm(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
-            holder_on_arm(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
-            holder_on_arm(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
-            holder_on_arm(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
-            accordion_arm_root(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
-            accordion_arm_root(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
-            accordion_arm_root(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
-            accordion_arm_root(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
-            tof_sensor_boom();
-            // The floor overlaps the chassis by 2 mm, making the side cradle one printed part.
-            translate([servo_cradle_center_x, 0, servo_cradle_mount_z])
-                servo_cradle();
+            arm_with_pad(arm_root_x, arm_root_y, arm_angle);
+            arm_with_pad(-arm_root_x, arm_root_y, 180 - arm_angle);
+            arm_with_pad(arm_root_x, -arm_root_y, -arm_angle);
+            arm_with_pad(-arm_root_x, -arm_root_y, arm_angle - 180);
+            holder_on_arm(arm_root_x, arm_root_y, arm_angle);
+            holder_on_arm(-arm_root_x, arm_root_y, 180 - arm_angle);
+            holder_on_arm(arm_root_x, -arm_root_y, -arm_angle);
+            holder_on_arm(-arm_root_x, -arm_root_y, arm_angle - 180);
+            accordion_arm_root(arm_root_x, arm_root_y, arm_angle);
+            accordion_arm_root(-arm_root_x, arm_root_y, 180 - arm_angle);
+            accordion_arm_root(arm_root_x, -arm_root_y, -arm_angle);
+            accordion_arm_root(-arm_root_x, -arm_root_y, arm_angle - 180);
+            if (include_side_accordion_springs) {
+                side_accordion_spring(-1);
+                side_accordion_spring(1);
+            }
+            if (include_servo_cradle)
+                // The floor overlaps the chassis by 2 mm, making the side cradle one printed part.
+                translate([servo_cradle_center_x, 0, servo_cradle_mount_z])
+                    servo_cradle();
         }
 
-        holder_slots_on_arm(center_width / 2 - 3, center_height / 2 - 17, arm_angle);
-        holder_slots_on_arm(-center_width / 2 + 3, center_height / 2 - 17, 180 - arm_angle);
-        holder_slots_on_arm(center_width / 2 - 3, -center_height / 2 + 17, -arm_angle);
-        holder_slots_on_arm(-center_width / 2 + 3, -center_height / 2 + 17, arm_angle - 180);
     }
 }
 

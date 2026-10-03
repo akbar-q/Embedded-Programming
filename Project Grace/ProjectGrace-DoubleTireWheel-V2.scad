@@ -1,37 +1,26 @@
-// Project Grace - V2 lightweight dual-tyre wheel for the N20-style gearmotor.
-// Dimensions are in millimetres. Measure the actual tyre and D-shaft before printing.
+// Project Grace - V2 custom double-tire wheel for the N20-style gearmotor.
+// Dimensions are in millimetres. The running surface follows the measured stepped N-profile.
 
 $fn = 96;
 
-// The IMechE brief specifies a commercial 22 mm copper pipe.
-pipe_outer_diameter = 22;
+// Measured N-profile for each tyre. The smaller outer lands and larger central
+// ledge form the stepped running surface visible in the reference wheel.
+outer_land_diameter = 27.4;
+centre_ledge_diameter = 30.88;
+wheel_profile_width = 6.5;
+centre_ledge_width = 3.5;
+outer_land_width = (wheel_profile_width - centre_ledge_width) / 2;
+n_profile_width = wheel_profile_width;
+wheel_pair_gap = 3;
+wheel_width = 2 * n_profile_width + wheel_pair_gap;
+core_diameter = outer_land_diameter;
 
-// Wheel envelope.
-wheel_diameter = 42;
-wheel_width = 18;
-hub_diameter = 12;
-
-// Double-cone running face: its narrow waist clears the pipe between the tyres.
-double_cone_waist_diameter = 34;
-
-// Two continuous tyre seats retain the rubber tyres.
-tire_groove_width = 5;
-tire_groove_depth = 1.5;
-tire_groove_spacing = 4;
-tire_band_edge_margin = 1.5;
-tire_ring_inner_diameter = 28;
-
-// Five curved spokes make the centre genuinely open and keep the load path symmetrical.
-spoke_count = 5;
-spoke_width = 4;
-spoke_depth = 5;
-spoke_outer_radius = 15;
-spoke_sweep = 4.5;
-
-// N20-style gearmotor output. The D-bore needs print clearance.
-shaft_diameter = 3;
+// Measured D-shaft: 2.85 mm circular diameter and 2.3 mm from the flat
+// to the opposite round edge. A small allowance keeps the printed bore usable.
+shaft_diameter = 2.85;
 shaft_clearance = 0.25;
-shaft_flat_from_center = 0.95;
+shaft_flat_to_round = 2.3;
+shaft_flat_from_center = shaft_flat_to_round - shaft_diameter / 2 + shaft_clearance / 2;
 
 module d_shaft_bore() {
     bore_diameter = shaft_diameter + shaft_clearance;
@@ -44,65 +33,38 @@ module d_shaft_bore() {
     }
 }
 
-function double_cone_surface_radius(z_position) =
-    double_cone_waist_diameter / 2
-    + (wheel_diameter - double_cone_waist_diameter) / 2
-        * abs(z_position) / (wheel_width / 2);
+module n_profile_tire(z_position) {
+    outer_radius = outer_land_diameter / 2;
+    centre_radius = centre_ledge_diameter / 2;
+    centre_half_width = centre_ledge_width / 2;
 
-module tire_groove(z_position) {
+    // One measured N-profile: two 27.4 mm lands around a 30.88 mm centre ledge.
     translate([0, 0, z_position])
-        rotate_extrude()
-            translate([
-                double_cone_surface_radius(z_position) - tire_groove_depth / 2,
-                0
-            ])
-                circle(d = tire_groove_width, $fn = 48);
-}
-
-module conical_tire_ring(z_position) {
-    band_half_width = tire_groove_width / 2 + tire_band_edge_margin;
-    band_start_z = z_position - band_half_width;
-    band_end_z = z_position + band_half_width;
-
-    difference() {
-        translate([0, 0, band_start_z])
-            cylinder(
-                d1 = 2 * double_cone_surface_radius(band_start_z),
-                d2 = 2 * double_cone_surface_radius(band_end_z),
-                h = 2 * band_half_width
-            );
-        cylinder(d = tire_ring_inner_diameter, h = wheel_width + 2, center = true);
-    }
-}
-
-module curved_spoke(angle) {
-    rotate([0, 0, angle])
-        hull() {
-            translate([hub_diameter / 3, 0, -spoke_depth / 2])
-                cylinder(d = spoke_width, h = spoke_depth, $fn = 32);
-            translate([spoke_outer_radius, spoke_sweep, -spoke_depth / 2])
-                cylinder(d = spoke_width, h = spoke_depth, $fn = 32);
-        }
+        rotate_extrude($fn = 96)
+            polygon(points = [
+                [0, -n_profile_width / 2],
+                [outer_radius, -n_profile_width / 2],
+                [outer_radius, -centre_half_width],
+                [centre_radius, -centre_half_width],
+                [centre_radius, centre_half_width],
+                [outer_radius, centre_half_width],
+                [outer_radius, n_profile_width / 2],
+                [0, n_profile_width / 2]
+            ]);
 }
 
 module double_tire_wheel_v2() {
-    groove_offset = (tire_groove_width + tire_groove_spacing) / 2;
+    tyre_offset = (n_profile_width + wheel_pair_gap) / 2;
 
     difference() {
         union() {
-            // Annular tyre rings preserve the two double-cone tyre seats.
-            conical_tire_ring(-groove_offset);
-            conical_tire_ring(groove_offset);
-            cylinder(d = hub_diameter, h = wheel_width + 2, center = true);
-
-            // Each spoke overlaps both rings through the narrow central gap.
-            for (angle = [0 : 360 / spoke_count : 359])
-                curved_spoke(angle);
+            n_profile_tire(-tyre_offset);
+            n_profile_tire(tyre_offset);
+            // Full-width core prevents the two tyre sections shearing at the centre joint.
+            cylinder(d = core_diameter, h = wheel_width, center = true);
         }
 
         d_shaft_bore();
-        tire_groove(-groove_offset);
-        tire_groove(groove_offset);
     }
 }
 
