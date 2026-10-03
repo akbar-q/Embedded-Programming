@@ -16,15 +16,14 @@ frame_thickness = 6;
 
 // Central body.
 center_width = 30;
-base_center_height = 58;
-center_height = 2 * base_center_height;
+center_height = 83;
 center_wire_opening_width = 20;
 center_wire_opening_height = 10;
 
 // Four identical motor arms. Their roots are compliant accordion flexures.
 // Increase arm_extension to gain climbing stroke without changing the mount layout.
 base_arm_length = 92;
-arm_extension = (center_height - base_center_height) / 2;
+arm_extension = 0;
 arm_length = base_arm_length + arm_extension;
 arm_width = 20;
 arm_slot_width = 5;
@@ -38,11 +37,11 @@ arm_angle = acos((target_wheel_hub_spacing / 2 - arm_root_x) / arm_length);
 
 // Paired PETG accordion flexures are built into each arm and carry its radial load.
 // The thinner 3 mm section bends in-plane while the centre frame and motor pad remain rigid.
-arm_spring_length = 28 + arm_extension;
+arm_spring_length = 28;
 arm_spring_beam_width = 3.5;
 arm_spring_thickness = 5;
 arm_spring_amplitude = 2.5;
-arm_spring_cycles = 4;
+arm_spring_cycles = 2;
 arm_spring_pair_spacing = 10;
 arm_spring_overlap = 5;
 spring_gusset_length = 7;
@@ -53,7 +52,7 @@ spring_gusset_tip_diameter = 4;
 side_spring_beam_width = 3.2;
 side_spring_thickness = 5;
 side_spring_amplitude = 6;
-side_spring_folds = 6;
+side_spring_folds = 4;
 side_spring_pad_overlap = 5;
 side_spring_pad_embed = 3;
 include_side_accordion_springs = true;
@@ -69,11 +68,17 @@ output_shaft_length = motor_overall_length - motor_can_length - gearbox_length;
 output_shaft_diameter = 3;
 
 // Integrated holder dimensions. The motor sits directly on the frame surface.
-motor_fit_clearance = 0.6;
+motor_fit_clearance = 1.5;
 holder_wall_thickness = 3.5;
 holder_wall_height = 12;
 holder_back_stop_thickness = 3;
 holder_length = motor_can_length + gearbox_length + 2;
+holder_lip_length = 14;
+holder_lip_depth = 5;
+holder_lip_height = 2;
+holder_lip_rise = 3.5;
+holder_lip_gusset_length = 4;
+holder_lip_positions = [5, 22];
 wire_exit_slot_width = 4;
 wire_exit_height = 8;
 wire_exit_corner_offset = motor_width / 2 - wire_exit_slot_width / 2 - 0.5;
@@ -199,6 +204,34 @@ module center_body() {
     }
 }
 
+module holder_lip_gussets(lip_x, wall_y) {
+    // Angled webs brace both ends of each raised stub against side loads.
+    hull() {
+        translate([
+            lip_x - holder_lip_gusset_length,
+            wall_y,
+            holder_wall_height - 1
+        ])
+            cube([holder_lip_gusset_length, holder_wall_thickness, 1]);
+        translate([lip_x, wall_y, holder_wall_height + holder_lip_rise - 1])
+            cube([holder_lip_gusset_length, holder_wall_thickness, 1]);
+    }
+    hull() {
+        translate([
+            lip_x + holder_lip_length,
+            wall_y,
+            holder_wall_height - 1
+        ])
+            cube([holder_lip_gusset_length, holder_wall_thickness, 1]);
+        translate([
+            lip_x + holder_lip_length - holder_lip_gusset_length,
+            wall_y,
+            holder_wall_height + holder_lip_rise - 1
+        ])
+            cube([holder_lip_gusset_length, holder_wall_thickness, 1]);
+    }
+}
+
 module motor_holder() {
     holder_outer_width = motor_width + motor_fit_clearance + 2 * holder_wall_thickness;
 
@@ -223,6 +256,39 @@ module motor_holder() {
             cube([holder_length, holder_wall_thickness, holder_wall_height]);
         translate([0, holder_outer_width / 2 - holder_wall_thickness, 0])
             cube([holder_length, holder_wall_thickness, holder_wall_height]);
+
+        // Raised L-shaped lips retain the motor above its top surface without a full roof.
+        for (lip_x = holder_lip_positions) {
+            translate([
+                lip_x,
+                -holder_outer_width / 2,
+                holder_wall_height
+            ])
+                cube([holder_lip_length, holder_wall_thickness, holder_lip_rise]);
+            translate([
+                lip_x,
+                holder_outer_width / 2 - holder_wall_thickness,
+                holder_wall_height
+            ])
+                cube([holder_lip_length, holder_wall_thickness, holder_lip_rise]);
+            translate([
+                lip_x,
+                -holder_outer_width / 2 + holder_wall_thickness,
+                holder_wall_height + holder_lip_rise - holder_lip_height
+            ])
+                cube([holder_lip_length, holder_lip_depth, holder_lip_height]);
+            translate([
+                lip_x,
+                holder_outer_width / 2 - holder_wall_thickness - holder_lip_depth,
+                holder_wall_height + holder_lip_rise - holder_lip_height
+            ])
+                cube([holder_lip_length, holder_lip_depth, holder_lip_height]);
+            holder_lip_gussets(lip_x, -holder_outer_width / 2);
+            holder_lip_gussets(
+                lip_x,
+                holder_outer_width / 2 - holder_wall_thickness
+            );
+        }
     }
 }
 
