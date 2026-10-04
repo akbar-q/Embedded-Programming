@@ -1,5 +1,5 @@
-// Project Grace - V2B chassis with anti-twist paired arm flexures.
-// Independent copy of the experimental chassis; dimensions are in millimetres.
+// Project Grace - V3 clean chassis branch for roof-mounted pipe safety wrap.
+// Based on V2B; dimensions are in millimetres.
 
 view_mode = "skeleton";
 
@@ -83,6 +83,29 @@ holder_back_stop_thickness = 3;
 holder_length = motor_can_length + gearbox_length + 2;
 holder_roof_length = holder_length / 2 + 6;
 holder_roof_thickness = 5;
+holder_roof_x_center = holder_back_stop_thickness - 1
+    + (holder_roof_length - holder_back_stop_thickness + 1) / 2;
+
+// Paired captive pipe guides sit at the motor-cover roofs, not on the plate.
+pipe_collar_inner_diameter = 24.5;
+pipe_collar_wall_thickness = 3;
+pipe_collar_outer_diameter = pipe_collar_inner_diameter + 2 * pipe_collar_wall_thickness;
+pipe_collar_throat_width = 18;
+pipe_collar_mouth_width = 26;
+pipe_collar_axial_width = 8;
+pipe_collar_split_gap = 3;
+pipe_collar_support_thickness = 8;
+pipe_collar_support_inner_x = 11.5;
+pipe_collar_support_outer_x = pipe_collar_outer_diameter / 2 + 3;
+pipe_collar_support_inner_foot_x = 5;
+pipe_collar_support_tip_z = 5.5;
+pipe_collar_station_y = arm_root_y
+    + (arm_length - holder_length + holder_roof_x_center) * sin(arm_angle);
+pipe_roof_top_z = frame_thickness
+    + holder_wall_height
+    - holder_roof_wall_overlap
+    + holder_roof_thickness;
+pipe_collar_center_z = pipe_roof_top_z + pipe_collar_inner_diameter / 2;
 wire_exit_slot_width = 4;
 wire_exit_height = 8;
 wire_exit_corner_offset = motor_width / 2 - wire_exit_slot_width / 2 - 0.5;
@@ -275,6 +298,61 @@ module inverted_pentagram_engraving() {
     }
 }
 
+module pipe_collar_half_cross_section(side) {
+    inner_radius = pipe_collar_inner_diameter / 2;
+    outer_radius = pipe_collar_outer_diameter / 2;
+    throat_half_width = pipe_collar_throat_width / 2;
+    throat_start_z = sqrt(inner_radius * inner_radius - throat_half_width * throat_half_width);
+    clip_edge_x = side * pipe_collar_split_gap / 2;
+
+    intersection() {
+        difference() {
+            difference() {
+                circle(r = outer_radius, $fn = 96);
+                circle(r = inner_radius, $fn = 96);
+            }
+
+            // Upward-flared entry snaps over the pipe while the narrow throat retains it.
+            polygon(points = [
+                [-throat_half_width, throat_start_z],
+                [-pipe_collar_mouth_width / 2, outer_radius + 1],
+                [pipe_collar_mouth_width / 2, outer_radius + 1],
+                [throat_half_width, throat_start_z]
+            ]);
+        }
+
+        if (side < 0)
+            translate([-outer_radius - 1, -outer_radius - 1])
+                square([outer_radius + 1 - pipe_collar_split_gap / 2, 2 * outer_radius + 2]);
+        else
+            translate([pipe_collar_split_gap / 2, -outer_radius - 1])
+                square([outer_radius + 1 - pipe_collar_split_gap / 2, 2 * outer_radius + 2]);
+    }
+}
+
+module pipe_collar_half_support(side, station_y) {
+    roof_z = pipe_roof_top_z - 0.2;
+    support_x = side * pipe_collar_support_inner_x;
+    support_tip_z = roof_z + pipe_collar_support_tip_z;
+
+    translate([0, station_y + pipe_collar_support_thickness / 2, 0])
+        rotate([90, 0, 0])
+            linear_extrude(height = pipe_collar_support_thickness)
+                polygon(points = [
+                    [side * pipe_collar_support_inner_foot_x, roof_z],
+                    [side * pipe_collar_support_outer_x, roof_z],
+                    [support_x, support_tip_z]
+                ]);
+}
+
+module pipe_safety_collar_half(station_y, side) {
+    translate([0, station_y, pipe_collar_center_z])
+        rotate([90, 0, 0])
+            linear_extrude(height = pipe_collar_axial_width, center = true)
+                pipe_collar_half_cross_section(side);
+    pipe_collar_half_support(side, station_y);
+}
+
 module motor_holder() {
     holder_outer_width = motor_width + motor_fit_clearance + 2 * holder_wall_thickness;
 
@@ -444,6 +522,9 @@ module printed_skeleton(include_servo_cradle = false) {
     difference() {
         union() {
             center_body();
+            for (station_y = [-pipe_collar_station_y, pipe_collar_station_y])
+                for (side = [-1, 1])
+                    pipe_safety_collar_half(station_y, side);
             arm_with_pad(arm_root_x, arm_root_y, arm_angle);
             arm_with_pad(-arm_root_x, arm_root_y, 180 - arm_angle);
             arm_with_pad(arm_root_x, -arm_root_y, -arm_angle);
