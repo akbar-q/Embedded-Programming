@@ -125,13 +125,14 @@ servo_ear_thickness = 2.5;
 servo_ear_height_from_spline = 19;
 servo_mount_hole_diameter = 2.2;
 servo_mount_hole_spacing = 27.4;
-servo_cradle_wall_thickness = 2;
-servo_cradle_wall_height = 10;
-servo_cradle_floor_thickness = 2;
+servo_cradle_wall_thickness = 3;
+servo_cradle_wall_height = 18;
+servo_cradle_floor_thickness = 3;
 servo_spline_diameter = 4.9;
 servo_spline_projection = 4;
 servo_spline_x_offset = 7;
 servo_cradle_center_x = -31;
+servo_cradle_center_y = -25;
 servo_cradle_mount_z = servo_cradle_floor_thickness;
 servo_inner_bracket_hole_diameter = 3.2;
 servo_inner_bracket_hole_positions = [-10, 0, 10];
@@ -542,7 +543,7 @@ module printed_skeleton(include_servo_cradle = false) {
                 side_accordion_spring(1);
             }
             if (include_servo_cradle)
-                translate([servo_cradle_center_x, 0, servo_cradle_mount_z])
+                translate([servo_cradle_center_x, servo_cradle_center_y, servo_cradle_mount_z])
                     servo_cradle();
         }
     }
@@ -565,14 +566,14 @@ module mg90s_reference() {
     color("royalblue")
         translate([
             servo_cradle_center_x - servo_body_length / 2,
-            -servo_body_width / 2,
+            servo_cradle_center_y - servo_body_width / 2,
             servo_cradle_mount_z - servo_body_height
         ])
             cube([servo_body_length, servo_body_width, servo_body_height]);
     color("dimgray")
         translate([
             servo_cradle_center_x + servo_spline_x_offset,
-            0,
+            servo_cradle_center_y,
             servo_cradle_mount_z - servo_body_height - servo_spline_projection
         ])
             cylinder(d = servo_spline_diameter, h = servo_spline_projection, $fn = 48);
@@ -586,4 +587,4 @@ else if (view_mode == "servo_reference") {
     mg90s_reference();
 } else
     color("orange")
-        printed_skeleton(include_servo_cradle = true);
+        printed_skeleton(include_servo_cradle = false);
