@@ -5,11 +5,11 @@ view_mode = "skeleton";
 
 // Pipe and wheel contact geometry.
 pipe_outer_diameter = 22;
-target_tread_gap = 14;
+target_tread_gap = 11;
 wheel_flare_per_side = 15;
 target_wheel_hub_spacing = target_tread_gap + 2 * wheel_flare_per_side;
 
-frame_thickness = 6;
+frame_thickness = 8;
 
 // Centre electronics plate.
 center_width = 30;
@@ -39,10 +39,10 @@ arm_spring_thickness = 5;
 arm_spring_amplitude = 2.5;
 arm_spring_cycles = 2;
 arm_spring_pair_spacing = 16;
-arm_spring_overlap = 5;
-spring_gusset_length = 7;
-spring_gusset_root_diameter = 8;
-spring_gusset_tip_diameter = 4;
+arm_spring_overlap = 8;
+spring_gusset_length = 10;
+spring_gusset_root_diameter = 12;
+spring_gusset_tip_diameter = 6;
 arm_stiffener_width = 3.5;
 arm_stiffener_height = 3.5;
 arm_stiffener_offset = 6.5;
@@ -87,25 +87,26 @@ holder_roof_x_center = holder_back_stop_thickness - 1
     + (holder_roof_length - holder_back_stop_thickness + 1) / 2;
 
 // Paired captive pipe guides sit at the motor-cover roofs, not on the plate.
-pipe_collar_inner_diameter = 24.5;
+pipe_collar_inner_diameter = 23;
 pipe_collar_wall_thickness = 3;
 pipe_collar_outer_diameter = pipe_collar_inner_diameter + 2 * pipe_collar_wall_thickness;
-pipe_collar_throat_width = 18;
-pipe_collar_mouth_width = 26;
-pipe_collar_axial_width = 8;
+pipe_collar_throat_width = 9;
+pipe_collar_mouth_width = 20;
+pipe_collar_axial_width = 16;
 pipe_collar_split_gap = 3;
-pipe_collar_support_thickness = 8;
-pipe_collar_support_inner_x = 11.5;
-pipe_collar_support_outer_x = pipe_collar_outer_diameter / 2 + 3;
-pipe_collar_support_inner_foot_x = 5;
-pipe_collar_support_tip_z = 5.5;
+pipe_collar_support_thickness = 16;
+pipe_collar_support_tip_x = pipe_collar_outer_diameter / 2 - 2.5;
+pipe_collar_support_tip_outer_x = pipe_collar_outer_diameter / 2 - 0.25;
+pipe_collar_support_outer_x = pipe_collar_outer_diameter / 2 + 8;
+pipe_collar_support_outer_foot_x = pipe_collar_outer_diameter / 2 - 3;
+pipe_collar_support_tip_z = 6.7;
 pipe_collar_station_y = arm_root_y
     + (arm_length - holder_length + holder_roof_x_center) * sin(arm_angle);
 pipe_roof_top_z = frame_thickness
     + holder_wall_height
     - holder_roof_wall_overlap
     + holder_roof_thickness;
-pipe_collar_center_z = pipe_roof_top_z + pipe_collar_inner_diameter / 2;
+pipe_collar_center_z = pipe_roof_top_z + pipe_collar_inner_diameter / 2 - 6;
 wire_exit_slot_width = 4;
 wire_exit_height = 8;
 wire_exit_corner_offset = motor_width / 2 - wire_exit_slot_width / 2 - 0.5;
@@ -136,7 +137,7 @@ servo_cradle_center_y = -25;
 servo_cradle_mount_z = servo_cradle_floor_thickness;
 servo_inner_bracket_hole_diameter = 3.2;
 servo_inner_bracket_hole_positions = [-10, 0, 10];
-star_mark_radius = 4.5;
+star_mark_radius = 7;
 star_mark_line_width = 0.8;
 star_mark_depth = 0.6;
 star_mark_y = center_height / 2 - 10;
@@ -243,36 +244,37 @@ module center_body() {
                 cylinder(d = center_wire_opening_height, h = frame_thickness + 2, $fn = 32);
         }
 
-        // Engraved labels leave shallow pockets that can be paint-filled.
-        for (label = [
-            ["Project", center_wire_opening_height / 2 + 6],
-            ["Grace", -(center_wire_opening_height / 2 + 4)]
-        ])
-            translate([0, label[1], frame_thickness - 0.6])
-                linear_extrude(height = 0.7)
-                    text(
-                        label[0],
-                        size = 6.5,
-                        font = "Bahnschrift:style=SemiBold",
-                        halign = "center",
-                        valign = "center"
-                    );
+    }
+}
 
-        translate([0, star_mark_y, frame_thickness - star_mark_depth])
-            linear_extrude(height = star_mark_depth + 0.1)
-                inverted_pentagram_engraving();
-
-        // Small paint-fill mark near the lower arm spring roots.
-        translate([0, -center_height / 2 + 10, frame_thickness - 0.6])
+module center_plate_engraving() {
+    for (label = [
+        ["Project", center_wire_opening_height / 2 + 6],
+        ["Grace", -(center_wire_opening_height / 2 + 4)]
+    ])
+        translate([0, label[1], frame_thickness - 0.6])
             linear_extrude(height = 0.7)
                 text(
-                    "AQ",
-                    size = 5,
+                    label[0],
+                    size = 6.5,
                     font = "Bahnschrift:style=SemiBold",
                     halign = "center",
                     valign = "center"
                 );
-    }
+
+    translate([0, star_mark_y, frame_thickness - star_mark_depth])
+        linear_extrude(height = star_mark_depth + 0.1)
+            inverted_pentagram_engraving();
+
+    translate([0, -center_height / 2 + 10, frame_thickness - 0.6])
+        linear_extrude(height = 0.7)
+            text(
+                "AQ",
+                size = 5,
+                font = "Bahnschrift:style=SemiBold",
+                halign = "center",
+                valign = "center"
+            );
 }
 
 function inverted_pentagram_point(index) = [
@@ -320,6 +322,14 @@ module pipe_collar_half_cross_section(side) {
                 [pipe_collar_mouth_width / 2, outer_radius + 1],
                 [throat_half_width, throat_start_z]
             ]);
+
+            // Remove the lower cradle span, leaving the requested open-bottom side hooks.
+            polygon(points = [
+                [-throat_half_width, -throat_start_z],
+                [-pipe_collar_mouth_width / 2, -outer_radius - 1],
+                [pipe_collar_mouth_width / 2, -outer_radius - 1],
+                [throat_half_width, -throat_start_z]
+            ]);
         }
 
         if (side < 0)
@@ -333,16 +343,16 @@ module pipe_collar_half_cross_section(side) {
 
 module pipe_collar_half_support(side, station_y) {
     roof_z = pipe_roof_top_z - 0.2;
-    support_x = side * pipe_collar_support_inner_x;
     support_tip_z = roof_z + pipe_collar_support_tip_z;
 
     translate([0, station_y + pipe_collar_support_thickness / 2, 0])
         rotate([90, 0, 0])
             linear_extrude(height = pipe_collar_support_thickness)
                 polygon(points = [
-                    [side * pipe_collar_support_inner_foot_x, roof_z],
+                    [side * pipe_collar_support_outer_foot_x, roof_z],
                     [side * pipe_collar_support_outer_x, roof_z],
-                    [support_x, support_tip_z]
+                    [side * pipe_collar_support_tip_outer_x, support_tip_z],
+                    [side * pipe_collar_support_tip_x, support_tip_z]
                 ]);
 }
 
@@ -546,6 +556,9 @@ module printed_skeleton(include_servo_cradle = false) {
                 translate([servo_cradle_center_x, servo_cradle_center_y, servo_cradle_mount_z])
                     servo_cradle();
         }
+
+        // Cut markings last so structural unions cannot cover or refill them.
+        center_plate_engraving();
     }
 }
 
