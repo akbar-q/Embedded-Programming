@@ -5,7 +5,7 @@ view_mode = "skeleton";
 
 // Pipe and wheel contact geometry.
 pipe_outer_diameter = 22;
-target_tread_gap = 11;
+target_tread_gap = 12;
 wheel_flare_per_side = 15;
 target_wheel_hub_spacing = target_tread_gap + 2 * wheel_flare_per_side;
 
@@ -16,6 +16,7 @@ center_width = 30;
 center_height = 83;
 center_wire_opening_width = 20;
 center_wire_opening_height = 10;
+servo_cradle_center_y = -25;
 
 // Arm and motor-pad layout.
 base_arm_length = 92;
@@ -115,17 +116,18 @@ servo_ear_thickness = 2.5;
 servo_ear_height_from_spline = 19;
 servo_mount_hole_diameter = 2.2;
 servo_mount_hole_spacing = 27.4;
-servo_cradle_wall_thickness = 3;
-servo_cradle_wall_height = 18;
+servo_cradle_wall_thickness = 4;
+servo_cradle_wall_height = 24;
 servo_cradle_floor_thickness = 3;
 servo_spline_diameter = 4.9;
 servo_spline_projection = 4;
 servo_spline_x_offset = 7;
-servo_cradle_center_x = -31;
-servo_cradle_center_y = -25;
+servo_cradle_center_x = 0;
 servo_cradle_mount_z = servo_cradle_floor_thickness;
 servo_inner_bracket_hole_diameter = 3.2;
 servo_inner_bracket_hole_positions = [-10, 0, 10];
+servo_cradle_outer_width = servo_body_width + servo_fit_clearance
+    + 2 * servo_cradle_wall_thickness;
 star_mark_radius = 7;
 star_mark_line_width = 0.8;
 star_mark_depth = 0.6;
@@ -541,8 +543,8 @@ if (view_mode == "motor_reference")
     compound_motor_reference();
 else if (view_mode == "servo_reference") {
     color("orange")
-        printed_skeleton();
+        printed_skeleton(include_servo_cradle = false);
     mg90s_reference();
 } else
     color("orange")
-        printed_skeleton(include_servo_cradle = false);
+        printed_skeleton(include_servo_cradle = true);

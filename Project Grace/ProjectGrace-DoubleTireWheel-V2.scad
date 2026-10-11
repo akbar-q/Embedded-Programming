@@ -1,22 +1,21 @@
-// Project Grace - V2 custom double-cone wheel for the N20-style gearmotor.
-// Dimensions are in millimetres. The narrow waist provides clearance around the pipe.
+// Project Grace - V2 custom twin N-profile tire wheel for the N20 gearmotor.
+// Square shoulders retain both tires; the reduced waist clears the pipe.
 
 $fn = 96;
 
-// Double-cone profile: a reduced 25.4 mm waist across the centre ledge,
-// flaring to 30.88 mm at both outer edges for a pipe-relief groove.
+// Tire-seat profile: 27.4 mm outer lands and 31.88 mm retaining ledges.
 waist_diameter = 25.4;
-outer_edge_diameter = 30.88;
-cone_flank_width = 6.5;
-waist_width = 3.5;
-wheel_width = 2 * cone_flank_width + waist_width;
-
-// Circumferential stepped seats for the two rubber tires, one per cone flank.
-tire_groove_width = 3.5;
-tire_groove_depth = 1.2;
-tire_groove_floor_width = 3.0;
-tire_gap_reduction = 1;
-tire_groove_offset = waist_width / 2 + cone_flank_width / 2 - tire_gap_reduction / 2;
+outer_land_diameter = 27.4;
+inner_ledge_diameter = 31.88;
+seat_profile_width = 6.5;
+inner_ledge_width = 3.5;
+outer_land_width = seat_profile_width - inner_ledge_width;
+waist_width = 9;
+wheel_width = 2 * seat_profile_width + waist_width;
+coin_edge_groove_count = 72;
+coin_edge_groove_depth = 0.5;
+coin_edge_groove_width = 0.65;
+coin_edge_end_margin = 0;
 side_emblem_radius = 14.3;
 side_emblem_line_width = 1.0;
 side_emblem_depth = 0.6;
@@ -40,45 +39,62 @@ module d_shaft_bore() {
     }
 }
 
-function cone_surface_radius(z_position) =
-    waist_diameter / 2
-    + (outer_edge_diameter - waist_diameter) / 2
-        * min(1, max(0, (abs(z_position) - waist_width / 2) / cone_flank_width));
-
-module tire_seat_groove(z_position) {
-    half_groove_width = tire_groove_width / 2;
-    half_floor_width = tire_groove_floor_width / 2;
-    z_start = z_position - half_groove_width;
-    z_end = z_position + half_groove_width;
-    floor_radius = cone_surface_radius(z_position) - tire_groove_depth;
-    cutter_outer_radius = outer_edge_diameter / 2 + 1;
-
-    rotate_extrude($fn = 128)
-        polygon(points = [
-            [floor_radius, z_position - half_floor_width],
-            [cone_surface_radius(z_start) + 0.2, z_start],
-            [cutter_outer_radius, z_start],
-            [cutter_outer_radius, z_end],
-            [cone_surface_radius(z_end) + 0.2, z_end],
-            [floor_radius, z_position + half_floor_width]
-        ]);
-}
-
-module double_cone_body() {
+module twin_n_profile_tire_seats() {
     waist_radius = waist_diameter / 2;
-    outer_edge_radius = outer_edge_diameter / 2;
+    outer_land_radius = outer_land_diameter / 2;
+    inner_ledge_radius = inner_ledge_diameter / 2;
     half_width = wheel_width / 2;
     waist_half_width = waist_width / 2;
+    inner_ledge_outer_z = waist_half_width + inner_ledge_width;
 
+    // Each tire spans a flat outer land and a raised inner ledge, forming an N seat.
     rotate_extrude($fn = 128)
         polygon(points = [
             [0, -half_width],
-            [outer_edge_radius, -half_width],
+            [outer_land_radius, -half_width],
+            [outer_land_radius, -inner_ledge_outer_z],
+            [inner_ledge_radius, -inner_ledge_outer_z],
+            [inner_ledge_radius, -waist_half_width],
             [waist_radius, -waist_half_width],
             [waist_radius, waist_half_width],
-            [outer_edge_radius, half_width],
+            [inner_ledge_radius, waist_half_width],
+            [inner_ledge_radius, inner_ledge_outer_z],
+            [outer_land_radius, inner_ledge_outer_z],
+            [outer_land_radius, half_width],
             [0, half_width]
         ]);
+}
+
+module coin_edge_band_relief(radius, center_offset, band_width) {
+    for (side = [-1, 1])
+        for (index = [0 : coin_edge_groove_count - 1])
+            rotate([0, 0, index * 360 / coin_edge_groove_count])
+                translate([
+                    radius - coin_edge_groove_depth / 2 + 0.02,
+                    0,
+                    side * center_offset
+                ])
+                    cube([
+                        coin_edge_groove_depth + 0.04,
+                        coin_edge_groove_width,
+                        band_width - 2 * coin_edge_end_margin
+                    ], center = true);
+}
+
+module coin_edge_reliefs() {
+    inner_ledge_center_offset = waist_width / 2 + inner_ledge_width / 2;
+    outer_land_center_offset = waist_width / 2 + inner_ledge_width + outer_land_width / 2;
+
+    coin_edge_band_relief(
+        inner_ledge_diameter / 2,
+        inner_ledge_center_offset,
+        inner_ledge_width
+    );
+    coin_edge_band_relief(
+        outer_land_diameter / 2,
+        outer_land_center_offset,
+        outer_land_width
+    );
 }
 
 function pentagram_point(index) = [
@@ -108,14 +124,13 @@ module pentagram_side_emblem_2d() {
 module double_tire_wheel_v2() {
     difference() {
         union() {
-            double_cone_body();
-            // Continuous waist core keeps both conical sides strongly joined.
+            twin_n_profile_tire_seats();
+            // Continuous waist core keeps both N-profile tire seats joined.
             cylinder(d = waist_diameter, h = wheel_width, center = true);
         }
 
         d_shaft_bore();
-        tire_seat_groove(-tire_groove_offset);
-        tire_seat_groove(tire_groove_offset);
+        coin_edge_reliefs();
 
         translate([0, 0, wheel_width / 2 - side_emblem_depth])
             linear_extrude(height = side_emblem_depth)
