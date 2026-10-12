@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e9eee6">
+  <title>Tomateo | Crop Vision Lab</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Tomateo home">
+        <span class="brand-mark"><i></i></span>
+        <span>tomateo<span class="brand-period">.</span></span>
+      </a>
+      <div class="topbar-meta"><span class="eyebrow">FIELD SYSTEMS</span><span class="meta-divider"></span><span>VISION LAB <b>01</b></span></div>
+      <div class="local-pill"><span class="pulse-dot"></span> LOCAL SERVER</div>
+    </header>
+
+    <main>
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">PROJECT TOMATEO <span>/</span> CAMERA STATION</p>
+          <h1>Crop vision lab</h1>
+          <p class="page-subtitle">Live inspection and ripeness model training</p>
+        </div>
+        <div class="connection-state" id="connection-state"><span class="state-dot"></span><span id="connection-text">Starting vision engine</span></div>
+      </section>
+
+      <section class="metrics-strip" aria-label="Video processing status">
+        <div class="metric"><span class="metric-label">SOURCE</span><strong id="source-metric">TEST SCENE</strong></div>
+        <div class="metric"><span class="metric-label">PROCESSING</span><strong><span id="fps-metric">--</span> <small>FPS</small></strong></div>
+        <div class="metric"><span class="metric-label">FRUIT PROPOSALS</span><strong id="fruit-metric">--</strong></div>
+        <div class="metric"><span class="metric-label">CAMERA MOTION</span><strong><span id="motion-metric">--</span> <small>PX / FRAME</small></strong></div>
+        <div class="metric accelerator-metric"><span class="metric-label">AMD ACCELERATOR</span><strong id="accelerator-metric">CHECKING</strong></div>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="feed-section">
+          <div class="section-heading">
+            <div><span class="section-index">01</span><h2>Camera feed</h2></div>
+            <div class="source-tabs" role="group" aria-label="Video source">
+              <button class="source-tab active" id="test-mode">Test mode</button>
+              <button class="source-tab" id="camera-mode">ESP32-CAM</button>
+            </div>
+          </div>
+
+          <div class="camera-connect-row" id="camera-connect-row" hidden>
+            <label for="camera-url">MJPEG stream URL</label>
+            <input id="camera-url" type="url" value="http://192.168.1.50:81/stream" spellcheck="false">
+            <button class="button button-dark" id="connect-camera">Connect</button>
+          </div>
+
+          <div class="video-stage" id="video-stage">
+            <img id="video-feed" src="/video_feed" alt="Live processed tomato camera feed">
+            <canvas id="roi-canvas" aria-label="Drag over a tomato to select a region for labeling"></canvas>
+            <div class="video-topline"><span class="live-badge"><i></i><span id="feed-label">SIMULATION</span></span><span class="video-resolution" id="resolution">640 × 480</span></div>
+            <div class="video-bottomline"><span>ROI SELECT</span><span>DRAG OVER ONE FRUIT TO LABEL</span></div>
+            <div class="video-offline" id="video-offline" hidden><strong>Camera not responding</strong><span>Check the stream URL and make sure the laptop and camera share Wi-Fi.</span></div>
+          </div>
+
+          <div class="feed-toolbar">
+            <div class="feed-note"><span class="crosshair-mark">+</span><span>Draw a region around a single tomato to inspect or add a training label.</span></div>
+            <button class="button button-quiet" id="clear-roi">Clear selection</button>
+          </div>
+
+          <div class="signal-row">
+            <div class="signal-heading"><span class="section-index">02</span><div><h3>Motion field</h3><p>Farneback optical flow · camera movement estimate</p></div></div>
+            <div class="motion-bars" id="motion-bars" aria-label="Optical flow motion history"></div>
+            <span class="signal-value" id="motion-reading">WAITING</span>
+          </div>
+        </section>
+
+        <aside class="analysis-section">
+          <div class="section-heading analysis-heading"><div><span class="section-index">03</span><h2>Ripeness model</h2></div><span class="model-chip" id="model-chip">DEMO MODEL</span></div>
+          <p class="model-description" id="model-description">A Random Forest learns from labeled fruit regions. Demo examples are active until you train it on your own crop images.</p>
+
+          <div class="prediction-block">
+            <span class="metric-label">CURRENT ROI PREDICTION</span>
+            <div class="prediction-line"><strong id="prediction-label">Select a tomato</strong><span id="prediction-confidence">--</span></div>
+            <div class="confidence-track"><span id="confidence-bar"></span></div>
+            <div class="probability-list" id="probability-list"></div>
+          </div>
+
+          <div class="label-block">
+            <div class="block-heading"><span class="metric-label">ADD LABELED SAMPLE</span><span id="sample-hint">0 saved</span></div>
+            <div class="label-buttons">
+              <button class="label-button label-green" data-label="green"><i></i>Green</button>
+              <button class="label-button label-turning" data-label="turning"><i></i>Turning</button>
+              <button class="label-button label-red" data-label="red"><i></i>Red</button>
+            </div>
+            <button class="button button-train" id="train-model"><span>Fit field model</span><span class="button-arrow">↗</span></button>
+            <p class="training-note" id="training-note">Needs 2 samples in each of at least 2 classes. Samples stay on this laptop.</p>
+          </div>
+
+          <div class="sample-counts">
+            <div class="block-heading"><span class="metric-label">YOUR LABELED DATA</span><span class="local-only">LOCAL ONLY</span></div>
+            <div class="count-row"><span><i class="swatch swatch-green"></i>Green</span><strong id="count-green">0</strong></div>
+            <div class="count-row"><span><i class="swatch swatch-turning"></i>Turning</span><strong id="count-turning">0</strong></div>
+            <div class="count-row"><span><i class="swatch swatch-red"></i>Red</span><strong id="count-red">0</strong></div>
+          </div>
+
+          <div class="compute-note">
+            <span class="compute-mark">GPU</span>
+            <div><strong id="compute-title">AMD DirectML</strong><span id="compute-detail">Checking optional ONNX runtime</span></div>
+            <span class="compute-indicator" id="compute-indicator"></span>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="status-footer"><span>LOCALHOST <b>127.0.0.1:5000</b></span><span>VISION PIPELINE <b>OpenCV · Random Forest</b></span><span>VIDEO IS NOT RECORDED BY DEFAULT</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
