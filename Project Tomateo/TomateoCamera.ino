@@ -2,8 +2,8 @@
 #include "esp_camera.h"
 #include "esp_http_server.h"
 
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID = "Staff@UGM";
+const char* WIFI_PASSWORD = "winc$#123";
 
 // AI-Thinker ESP32-CAM pin map.
 #define PWDN_GPIO_NUM     32
@@ -23,7 +23,6 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-static const char* STREAM_BOUNDARY = "tomateo-frame-boundary";
 static const char* STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=tomateo-frame-boundary";
 static const char* STREAM_PART_HEADER = "\r\n--tomateo-frame-boundary\r\nContent-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
 
@@ -76,7 +75,7 @@ static esp_err_t streamHandler(httpd_req_t* request) {
   }
 }
 
-static bool registerUri(httpd_handle_t server, const char* path, httpd_uri_func_t handler) {
+static bool registerUri(httpd_handle_t server, const char* path, esp_err_t (*handler)(httpd_req_t*)) {
   httpd_uri_t uri = {};
   uri.uri = path;
   uri.method = HTTP_GET;

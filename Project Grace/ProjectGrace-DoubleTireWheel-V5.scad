@@ -1,7 +1,7 @@
 // Project Grace - V5 twin N-profile tire wheel with fluted split spokes.
 // The tire seats and measured N20 D-shaft fit are retained from V2.
 
-$fn = 96;
+$fn = $preview ? 48 : 96;
 
 // Tire-seat profile: 27.4 mm outer lands and 31.88 mm retaining ledges.
 waist_diameter = 25.4;
@@ -11,11 +11,11 @@ seat_profile_width = 6.5;
 inner_ledge_width = 3.5;
 outer_land_width = seat_profile_width - inner_ledge_width;
 outer_retaining_lip_height = 1.85;
-outer_retaining_lip_width = 2.4;
-outer_retaining_lip_overlap = 1.6;
+outer_retaining_lip_width = 1.2;
+outer_retaining_lip_overlap = 0.8;
 waist_width = 9;
 wheel_width = 2 * seat_profile_width + waist_width;
-coin_edge_groove_count = 72;
+coin_edge_groove_count = $preview ? 18 : 72;
 coin_edge_groove_depth = 0.5;
 coin_edge_groove_width = 0.65;
 coin_edge_end_margin = 0;
@@ -65,7 +65,7 @@ module twin_n_profile_tire_seats() {
     waist_half_width = waist_width / 2;
     inner_ledge_outer_z = waist_half_width + inner_ledge_width;
 
-    rotate_extrude($fn = 128)
+    rotate_extrude($fn = $preview ? 64 : 128)
         polygon(points = [
             [0, -half_width],
             [outer_land_radius, -half_width],
@@ -247,12 +247,16 @@ module double_tire_wheel_v5() {
         }
 
         d_shaft_bore();
-        coin_edge_reliefs();
+        if (!$preview)
+            coin_edge_reliefs();
         split_spoke_through_cuts();
-        split_spoke_surface_grooves();
-        lug_recesses();
+        if (!$preview) {
+            split_spoke_surface_grooves();
+            lug_recesses();
+        }
     }
 }
 
-color("red")
-    double_tire_wheel_v5();
+if (is_undef($combined_print_layout) || !$combined_print_layout)
+    color("red")
+        double_tire_wheel_v5();
