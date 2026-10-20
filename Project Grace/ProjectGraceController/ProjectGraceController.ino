@@ -15,11 +15,11 @@ constexpr uint8_t SERVO_FINAL_ANGLE = 10;
 
 constexpr uint16_t IDLE_FRAME_INTERVAL_MS = 90;
 constexpr uint16_t BUTTON_DEBOUNCE_MS = 25;
-constexpr uint32_t FORWARD_DURATION_MS = 9500;
+constexpr uint32_t FORWARD_DURATION_MS = 8800;
 constexpr uint32_t STOP_DURATION_MS = 10900;
-constexpr uint32_t REVERSE_DURATION_MS = 2750;
+constexpr uint32_t REVERSE_DURATION_MS = 2550;
 constexpr uint32_t FINAL_SERVO_HOLD_MS = 500;
-constexpr uint32_t FINAL_SERVO_DESCENT_DURATION_MS = 3750;
+constexpr uint32_t FINAL_SERVO_DESCENT_DURATION_MS = 3500;
 constexpr uint16_t STOP_BEEP_INTERVAL_MS = 1000;
 constexpr uint16_t STOP_BEEP_DURATION_MS = 160;
 constexpr uint16_t IDLE_NOTE_GAP_MS = 45;
